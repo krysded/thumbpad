@@ -58,6 +58,9 @@ private:
     const Block *m_block = nullptr;
     double m_pxPerMm = 96.0 / 25.4;
     std::map<int, std::unique_ptr<Press>> m_presses;
+    bool m_moveInFlight = false;  // waiting for a block move to reach the screen
+    bool m_moveCommitted = false;
+    QTimer m_moveTimeout;
 };
 
 } // namespace tp

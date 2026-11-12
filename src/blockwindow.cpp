@@ -23,6 +23,10 @@ BlockWindow::BlockWindow(Controller *controller, const Settings &settings)
     setFormat(fmt);
     setFlags(Qt::FramelessWindowHint | Qt::WindowDoesNotAcceptFocus);
     setTitle(QStringLiteral("thumbpad"));
+    // Never stay stuck if a frame callback doesn't come (e.g. window hidden).
+    m_moveTimeout.setSingleShot(true);
+    m_moveTimeout.setInterval(150);
+    connect(&m_moveTimeout, &QTimer::timeout, this, [this] { m_moveInFlight = false; });
 }
 
 void BlockWindow::setBlock(const Block *block, double pxPerMm)
@@ -112,12 +116,17 @@ void BlockWindow::move(int id, QPointF pos)
             p.sliding = p.moved = true;
             p.timer->stop();
         }
-        if (p.sliding) {
-            // The window follows the finger, so the touch point drifts back to
-            // where it started inside the window. We can't know when the
-            // compositor applies each move, so only go half the way per event:
-            // with gain 1 the one-event lag makes the block oscillate.
-            Q_EMIT moveRequested(this, d * 0.5);
+        // Touch positions are relative to the window, which is itself moving.
+        // Move by the full offset from the grab point, then ignore events
+        // until the compositor has shown the moved window (frame callback):
+        // later events are then relative to the new position, and the finger
+        // sits on the grab point again. Without this wait, events still
+        // relative to the old position get counted twice.
+        if (p.sliding && !m_moveInFlight && std::hypot(d.x(), d.y()) >= 1.0) {
+            m_moveInFlight = true;
+            m_moveCommitted = false;
+            m_moveTimeout.start();
+            Q_EMIT moveRequested(this, d); // repaints this window with the new margins
         }
         return;
     }
@@ -178,8 +187,10 @@ void BlockWindow::end(int id, QPointF pos)
     p->timer->stop();
     update();
 
-    if (p->sliding && p->key->moveSlide)
+    if (p->sliding && p->key->moveSlide) {
+        m_moveInFlight = false;
         Q_EMIT moveFinished();
+    }
     if (p->consumed || p->sliding)
         return;
     if (p->dir < 0)
@@ -205,6 +216,22 @@ bool BlockWindow::event(QEvent *e)
         }
         e->accept();
         return true;
+    }
+    case QEvent::UpdateRequest: {
+        // First request: paints and commits the moved window. The second one
+        // (no repaint needed) is only delivered after that commit's frame
+        // callback, i.e. once the compositor shows the window in its new place.
+        const bool r = QRasterWindow::event(e);
+        if (m_moveInFlight) {
+            if (!m_moveCommitted) {
+                m_moveCommitted = true;
+                requestUpdate();
+            } else {
+                m_moveInFlight = false;
+                m_moveTimeout.stop();
+            }
+        }
+        return r;
     }
     case QEvent::TouchCancel:
         cancelAll();

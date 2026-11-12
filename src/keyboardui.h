@@ -28,6 +28,22 @@ protected:
     void paintEvent(QPaintEvent *) override;
 };
 
+// Small tab at the right screen edge, shown while the keyboard is hidden, so
+// it can always be brought back without a hardware keyboard.
+class HandleWindow : public QRasterWindow
+{
+    Q_OBJECT
+public:
+    HandleWindow();
+
+Q_SIGNALS:
+    void tapped();
+
+protected:
+    bool event(QEvent *e) override;
+    void paintEvent(QPaintEvent *) override;
+};
+
 // Owns the block windows: picks blocks for the current layer and orientation,
 // places them with layer-shell, and decides when they are visible.
 class KeyboardUi : public QObject
@@ -50,6 +66,7 @@ public:
     bool reserveSpace() const { return m_reserve; }
     void moveBlock(int index, QPointF delta);
     void resetPositions();
+    void saveState() const;
 
 private:
     void onStateChanged();
@@ -57,10 +74,10 @@ private:
     void rebuild();
     void applyBlocks();
     void updateVisibility();
-    void place(int index);
+    void placeAll();
+    void createHandle();
     void updateSpacer();
-    void saveState() const;
-    QString offsetKey(int index) const;
+    QString offsetKey() const;
     bool portrait() const;
     const LayerDef &currentLayer() const;
     double pxPerMm() const;
@@ -69,7 +86,10 @@ private:
     std::shared_ptr<const Layout> m_layout;
     QList<QPointer<BlockWindow>> m_windows;
     QPointer<SpacerWindow> m_spacer;
-    QHash<QString, QPointF> m_offsets; // "landscape/0" -> offset in logical px
+    QPointer<HandleWindow> m_handle;
+    // Per orientation, shared by all blocks so a split keyboard moves as one:
+    // x = towards the screen centre, y = up (logical px).
+    QHash<QString, QPointF> m_offsets;
     QString m_shownLayer;
     bool m_shownPortrait = false;
     bool m_pinned = false;

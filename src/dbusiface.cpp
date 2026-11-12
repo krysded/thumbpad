@@ -18,7 +18,11 @@ void DBusIface::Hide() { m_ui->hide(); }
 void DBusIface::Reload() { m_reload(); }
 void DBusIface::ToggleReserve() { m_ui->setReserveSpace(!m_ui->reserveSpace()); }
 void DBusIface::ResetPositions() { m_ui->resetPositions(); }
-void DBusIface::MoveBlock(int index, double dx, double dy) { m_ui->moveBlock(index, QPointF(dx, dy)); }
+void DBusIface::MoveBlock(int index, double dx, double dy)
+{
+    m_ui->moveBlock(index, QPointF(dx, dy));
+    m_ui->saveState();
+}
 
 QString DBusIface::Press(const QString &actionJson)
 {
