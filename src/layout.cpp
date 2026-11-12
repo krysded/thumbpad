@@ -75,10 +75,13 @@ KeyDef parseKey(const QJsonValue &v, const QString &where, QStringList *errors)
     if (k.width <= 0)
         *errors << QStringLiteral("%1: width must be positive").arg(where);
     if (o.contains("slide")) {
-        if (o.value("slide").toString() == "cursor")
+        const QString slide = o.value("slide").toString();
+        if (slide == "cursor")
             k.cursorSlide = true;
+        else if (slide == "move")
+            k.moveSlide = true;
         else
-            *errors << QStringLiteral("%1: slide must be \"cursor\"").arg(where);
+            *errors << QStringLiteral("%1: slide must be \"cursor\" or \"move\"").arg(where);
     }
     const QJsonObject sw = o.value("swipe").toObject();
     for (auto it = sw.begin(); it != sw.end(); ++it) {
@@ -91,10 +94,10 @@ KeyDef parseKey(const QJsonValue &v, const QString &where, QStringList *errors)
             *errors << QStringLiteral("%1.swipe: direction \"%2\" given twice").arg(where, it.key());
         k.swipes[d] = actionAt(it.value(), where + ".swipe." + it.key(), errors);
     }
-    if (k.cursorSlide) {
+    if (k.cursorSlide || k.moveSlide) {
         for (const Action &s : k.swipes)
             if (s.isValid())
-                *errors << QStringLiteral("%1: a cursor-slide key can't have swipes").arg(where);
+                *errors << QStringLiteral("%1: a slide key can't have swipes").arg(where);
     }
     if (!k.tap.isValid() && !k.longPress.isValid()) {
         bool any = false;
@@ -166,6 +169,7 @@ QString describe(const Action &a)
     case Action::Type::Mod: return "[mod " + modName(a.mod) + "]";
     case Action::Type::Layer: return "[layer " + a.layer + "]";
     case Action::Type::Hide: return "[hide]";
+    case Action::Type::Command: return "[" + a.command + "]";
     }
     return {};
 }
@@ -323,6 +327,7 @@ QString Layout::summary() const
                                 line += QStringLiteral("  %1 %2").arg(dirName(d), describe(k.swipes[d]));
                         if (k.repeat) line += "  (repeat)";
                         if (k.cursorSlide) line += "  (cursor slide)";
+                        if (k.moveSlide) line += "  (drag moves block)";
                         out += line + "\n";
                     }
                 }

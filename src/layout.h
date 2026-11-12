@@ -22,6 +22,7 @@ struct KeyDef {
     std::array<Action, DirCount> swipes;
     bool repeat = false;      // hold repeats the tap action (backspace, arrows)
     bool cursorSlide = false; // dragging moves the cursor (spacebar)
+    bool moveSlide = false;   // dragging moves this block on screen
     QString label;            // overrides the tap label
 };
 

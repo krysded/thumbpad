@@ -25,7 +25,7 @@ const QPointF kDirOffset[DirCount] = {{0, -1}, {1, -1}, {1, 0}, {1, 1},
 
 bool isUtility(const KeyDef &k)
 {
-    return k.tap.type != Action::Type::Text || k.cursorSlide;
+    return k.tap.type != Action::Type::Text || k.cursorSlide || k.moveSlide;
 }
 
 QColor modColor(const Action &a, const RenderState &st, const QColor &fallback)

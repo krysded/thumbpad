@@ -35,6 +35,7 @@ public:
 Q_SIGNALS:
     void stateChanged();
     void hideRequested();
+    void commandRequested(const QString &command);
 
 private:
     void commitText(const QString &text);

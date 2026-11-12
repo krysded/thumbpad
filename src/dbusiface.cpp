@@ -16,6 +16,9 @@ void DBusIface::Toggle() { m_ui->toggle(); }
 void DBusIface::Show() { m_ui->show(); }
 void DBusIface::Hide() { m_ui->hide(); }
 void DBusIface::Reload() { m_reload(); }
+void DBusIface::ToggleReserve() { m_ui->setReserveSpace(!m_ui->reserveSpace()); }
+void DBusIface::ResetPositions() { m_ui->resetPositions(); }
+void DBusIface::MoveBlock(int index, double dx, double dy) { m_ui->moveBlock(index, QPointF(dx, dy)); }
 
 QString DBusIface::Press(const QString &actionJson)
 {
@@ -35,7 +38,8 @@ QString DBusIface::Press(const QString &actionJson)
 QString DBusIface::State()
 {
     return m_controller->stateString() +
-           (m_ui->isShown() ? QStringLiteral(" visible") : QStringLiteral(" hidden"));
+           (m_ui->isShown() ? QStringLiteral(" visible") : QStringLiteral(" hidden")) +
+           (m_ui->reserveSpace() ? QStringLiteral(" reserve") : QString());
 }
 
 } // namespace tp

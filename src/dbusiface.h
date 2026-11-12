@@ -27,6 +27,9 @@ public Q_SLOTS:
     void Show();
     void Hide();
     void Reload();
+    void ToggleReserve();
+    void ResetPositions();
+    void MoveBlock(int index, double dx, double dy);
     // Runs one action given as JSON: "\"a\"" commits text, '{"key":"esc"}' a key.
     QString Press(const QString &actionJson);
     QString State();

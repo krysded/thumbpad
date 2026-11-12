@@ -75,7 +75,7 @@ const QHash<QString, QString> &modPrefixes()
 
 const QSet<QString> &actionObjectFields()
 {
-    static const QSet<QString> s{"key", "mod", "layer", "hide", "text", "label"};
+    static const QSet<QString> s{"key", "mod", "layer", "hide", "text", "label", "command"};
     return s;
 }
 
@@ -140,7 +140,7 @@ Action parseAction(const QJsonValue &v, QString *error)
             ++kinds;
     }
     if (kinds != 1) {
-        *error = QStringLiteral("action object needs exactly one of key/mod/layer/hide/text");
+        *error = QStringLiteral("action object needs exactly one of key/mod/layer/hide/text/command");
         return {};
     }
     a.label = o.value("label").toString();
@@ -183,6 +183,13 @@ Action parseAction(const QJsonValue &v, QString *error)
         }
     } else if (o.contains("hide")) {
         a.type = Action::Type::Hide;
+    } else if (o.contains("command")) {
+        a.type = Action::Type::Command;
+        a.command = o.value("command").toString();
+        if (a.command != "toggle-reserve" && a.command != "reset-position") {
+            *error = QStringLiteral("unknown command \"%1\"").arg(a.command);
+            return {};
+        }
     }
     return a;
 }
@@ -230,6 +237,8 @@ QString displayLabel(const Action &a, bool shifted)
         return a.layer;
     case Action::Type::Hide:
         return QStringLiteral("▾");
+    case Action::Type::Command:
+        return a.command == "toggle-reserve" ? QStringLiteral("⇕") : QStringLiteral("⟲");
     }
     return {};
 }

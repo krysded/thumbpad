@@ -94,6 +94,10 @@ void Controller::execute(const Action &a)
         Q_EMIT hideRequested();
         return;
 
+    case Action::Type::Command:
+        Q_EMIT commandRequested(a.command);
+        return;
+
     case Action::Type::Key: {
         if (!m_uinput || !m_uinput->isOpen()) {
             qWarning("thumbpad: key action \"%s\" needs uinput", qPrintable(a.keySpec));

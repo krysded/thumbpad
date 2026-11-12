@@ -23,6 +23,11 @@ public:
     const Block *block() const { return m_block; }
     void cancelAll();
 
+Q_SIGNALS:
+    // Asks the owner to move this window by delta (logical px, screen axes).
+    void moveRequested(BlockWindow *self, QPointF delta);
+    void moveFinished();
+
 protected:
     bool event(QEvent *e) override;
     void paintEvent(QPaintEvent *) override;
@@ -38,7 +43,7 @@ private:
         int dir = -1;          // -1 = centre
         bool moved = false;    // went past the swipe threshold at some point
         bool consumed = false; // long-press or repeat already acted
-        bool sliding = false;  // cursor slide in progress
+        bool sliding = false;  // cursor slide or block move in progress
         std::unique_ptr<QTimer> timer;
     };
 

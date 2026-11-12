@@ -2,15 +2,31 @@
 
 #include "layout.h"
 
+#include <QHash>
 #include <QList>
 #include <QObject>
+#include <QPointF>
 #include <QPointer>
+#include <QRasterWindow>
 #include <memory>
 
 namespace tp {
 
 class BlockWindow;
 class Controller;
+
+// Invisible full-width strip whose only job is a layer-shell exclusive zone:
+// it makes KWin keep the area above the keyboard free (maximized windows shrink).
+// The blocks can't do this themselves because corner-anchored surfaces can't
+// reserve space.
+class SpacerWindow : public QRasterWindow
+{
+public:
+    SpacerWindow();
+
+protected:
+    void paintEvent(QPaintEvent *) override;
+};
 
 // Owns the block windows: picks blocks for the current layer and orientation,
 // places them with layer-shell, and decides when they are visible.
@@ -30,11 +46,21 @@ public:
     bool isShown() const { return m_visible; }
     void setImActive(bool active);
 
+    void setReserveSpace(bool reserve);
+    bool reserveSpace() const { return m_reserve; }
+    void moveBlock(int index, QPointF delta);
+    void resetPositions();
+
 private:
     void onStateChanged();
+    void onCommand(const QString &command);
     void rebuild();
     void applyBlocks();
     void updateVisibility();
+    void place(int index);
+    void updateSpacer();
+    void saveState() const;
+    QString offsetKey(int index) const;
     bool portrait() const;
     const LayerDef &currentLayer() const;
     double pxPerMm() const;
@@ -42,12 +68,15 @@ private:
     Controller *m_controller;
     std::shared_ptr<const Layout> m_layout;
     QList<QPointer<BlockWindow>> m_windows;
+    QPointer<SpacerWindow> m_spacer;
+    QHash<QString, QPointF> m_offsets; // "landscape/0" -> offset in logical px
     QString m_shownLayer;
     bool m_shownPortrait = false;
     bool m_pinned = false;
     bool m_suppressed = false;
     bool m_imActive = false;
     bool m_visible = false;
+    bool m_reserve = false;
 };
 
 } // namespace tp

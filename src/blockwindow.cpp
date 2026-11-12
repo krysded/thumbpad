@@ -107,6 +107,21 @@ void BlockWindow::move(int id, QPointF pos)
     const double dist = std::hypot(d.x(), d.y());
     const double threshold = m_settings.swipeThresholdMm * m_pxPerMm;
 
+    if (p.key->moveSlide) {
+        if (!p.sliding && dist > threshold) {
+            p.sliding = p.moved = true;
+            p.timer->stop();
+        }
+        if (p.sliding) {
+            // The window follows the finger, so the touch point drifts back to
+            // where it started inside the window. We can't know when the
+            // compositor applies each move, so only go half the way per event:
+            // with gain 1 the one-event lag makes the block oscillate.
+            Q_EMIT moveRequested(this, d * 0.5);
+        }
+        return;
+    }
+
     if (p.key->cursorSlide) {
         if (!p.sliding && dist > threshold) {
             p.sliding = p.moved = true;
@@ -163,6 +178,8 @@ void BlockWindow::end(int id, QPointF pos)
     p->timer->stop();
     update();
 
+    if (p->sliding && p->key->moveSlide)
+        Q_EMIT moveFinished();
     if (p->consumed || p->sliding)
         return;
     if (p->dir < 0)

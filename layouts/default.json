@@ -19,7 +19,7 @@
               {"tap": "n", "long": "1", "swipe": {"tr": "ň", "r": "b"}},
               {"tap": "t", "long": "2", "swipe": {"tr": "ť", "r": "f"}},
               {"tap": "l", "long": "3", "swipe": {"r": "&"}},
-              {"tap": {"key": "esc"}, "swipe": {"r": {"key": "tab"}, "b": {"key": "shift+tab"}}}
+              {"tap": {"key": "esc"}, "long": {"command": "toggle-reserve"}, "swipe": {"r": {"key": "tab"}, "b": {"key": "shift+tab"}}}
             ],
             [
               {"tap": "r", "long": "4", "swipe": {"tr": "ř", "r": "g"}},
@@ -39,7 +39,7 @@
           "edge": "right",
           "rows": [
             [
-              {"tap": {"layer": "numeric"}, "swipe": {"t": {"hide": true}}},
+              {"tap": {"layer": "numeric"}, "long": {"command": "reset-position"}, "slide": "move"},
               {"tap": "e", "long": "0", "swipe": {"t": "ě", "tl": "é", "b": ".", "bl": ","}},
               {"tap": "a", "swipe": {"t": "á", "b": "?", "bl": "!"}},
               {"tap": "o", "swipe": {"t": "ó", "b": "-", "bl": ":"}}
@@ -51,7 +51,7 @@
               {"tap": "u", "swipe": {"t": "ú", "tl": "ů", "b": "(", "bl": ")"}}
             ],
             [
-              {"tap": {"key": "enter"}},
+              {"tap": {"key": "enter"}, "long": {"hide": true}},
               {"tap": "c", "swipe": {"t": "č", "b": "@", "bl": "#"}},
               {"tap": "j", "swipe": {"b": "_", "bl": "="}},
               {"tap": "h", "swipe": {"b": "*", "bl": "+"}}
@@ -64,7 +64,7 @@
           "edge": "right",
           "rows": [
             [
-              {"tap": {"layer": "numeric"}, "swipe": {"t": {"hide": true}}},
+              {"tap": {"layer": "numeric"}, "long": {"command": "reset-position"}, "slide": "move"},
               {"tap": "a", "swipe": {"t": "á", "br": "v", "b": "ý", "l": ";"}},
               {"tap": "n", "swipe": {"tl": "ň", "t": "*", "b": "l", "br": "ď"}},
               {"tap": "i", "swipe": {"t": "í", "l": "q", "bl": "x"}}
@@ -82,9 +82,9 @@
               {"tap": "s", "swipe": {"tl": "z", "t": "š", "bl": "ž", "l": "'", "b": "\""}}
             ],
             [
-              {"tap": {"key": "esc"}, "swipe": {"t": {"key": "tab"}}},
+              {"tap": {"key": "esc"}, "long": {"command": "toggle-reserve"}, "swipe": {"t": {"key": "tab"}}},
               {"tap": " ", "slide": "cursor", "w": 2},
-              {"tap": {"key": "enter"}, "swipe": {"t": "/", "l": "(", "tl": ")", "tr": "@", "bl": "#", "b": "_"}}
+              {"tap": {"key": "enter"}, "long": {"hide": true}, "swipe": {"t": "/", "l": "(", "tl": ")", "tr": "@", "bl": "#", "b": "_"}}
             ]
           ]
         }
@@ -99,7 +99,7 @@
               {"tap": "1", "swipe": {"r": "!"}},
               {"tap": "2", "swipe": {"r": "@"}},
               {"tap": "3", "swipe": {"r": "#"}},
-              {"tap": {"key": "esc"}, "swipe": {"r": {"key": "tab"}, "b": {"key": "shift+tab"}}}
+              {"tap": {"key": "esc"}, "long": {"command": "toggle-reserve"}, "swipe": {"r": {"key": "tab"}, "b": {"key": "shift+tab"}}}
             ],
             [
               {"tap": "4", "swipe": {"r": "$"}},
@@ -119,7 +119,7 @@
           "edge": "right",
           "rows": [
             [
-              {"tap": {"layer": "main"}, "swipe": {"t": {"hide": true}}},
+              {"tap": {"layer": "main"}, "long": {"command": "reset-position"}, "slide": "move"},
               {"tap": "0", "swipe": {"bl": ")", "t": "~"}},
               {"tap": {"key": "up"}, "repeat": true, "swipe": {"bl": {"key": "pageup"}}},
               {"tap": ".", "swipe": {"bl": ",", "t": "`"}}
@@ -131,7 +131,7 @@
               {"tap": {"key": "right"}, "repeat": true, "swipe": {"t": {"key": "end"}}}
             ],
             [
-              {"tap": {"key": "enter"}},
+              {"tap": {"key": "enter"}, "long": {"hide": true}},
               {"tap": "+", "swipe": {"b": "-", "bl": "=", "tl": "€"}},
               {"tap": "[", "swipe": {"b": "]", "bl": "{", "tl": "}"}},
               {"tap": "<", "swipe": {"b": ">", "bl": "|", "tl": "\\"}}
@@ -144,7 +144,7 @@
           "edge": "right",
           "rows": [
             [
-              {"tap": {"layer": "main"}, "swipe": {"t": {"hide": true}}},
+              {"tap": {"layer": "main"}, "long": {"command": "reset-position"}, "slide": "move"},
               {"tap": "1", "swipe": {"b": "!"}},
               {"tap": "2", "swipe": {"b": "@", "t": {"key": "up"}}},
               {"tap": "3", "swipe": {"b": "#"}}
@@ -162,10 +162,10 @@
               {"tap": "9", "swipe": {"b": "(", "t": "=", "l": "{", "r": "}"}}
             ],
             [
-              {"tap": {"key": "esc"}, "swipe": {"t": {"key": "tab"}}},
+              {"tap": {"key": "esc"}, "long": {"command": "toggle-reserve"}, "swipe": {"t": {"key": "tab"}}},
               {"tap": "0", "swipe": {"t": ".", "tl": ",", "tr": ")", "l": "<", "r": ">"}},
               {"tap": " ", "slide": "cursor"},
-              {"tap": {"key": "enter"}, "swipe": {"t": "/", "l": "\\", "tl": "|", "tr": "~", "b": "_"}}
+              {"tap": {"key": "enter"}, "long": {"hide": true}, "swipe": {"t": "/", "l": "\\", "tl": "|", "tr": "~", "b": "_"}}
             ]
           ]
         }

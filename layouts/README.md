@@ -40,6 +40,7 @@ null                                  // empty cell, 1 key wide
   "swipe": {"t": ACTION, "tr": ..., "r": ..., "br": ..., "b": ..., "bl": ..., "l": ..., "tl": ...},
   "repeat": true,                     // holding repeats the tap action (backspace, arrows)
   "slide": "cursor",                  // dragging moves the cursor (spacebar); no swipes allowed
+  "slide": "move",                    // dragging moves the block on screen; no swipes allowed
   "w": 2,                             // width in keys
   "label": "⌫"                        // custom face text
 }
@@ -57,6 +58,8 @@ recogniser splits the circle into eight 45° sectors.
 | `{"mod": "shift" \| "ctrl" \| "alt" \| "super"}` | Modifier: tap once for the next key only, twice to lock, a third time to turn it off. Locked Shift is Caps Lock. |
 | `{"layer": "numeric"}` | Switches layer. |
 | `{"hide": true}` | Hides the keyboard. |
+| `{"command": "toggle-reserve"}` | Turns reserved space on or off. When on, KWin keeps the strip above the keyboard free, so maximized windows such as a terminal shrink instead of being covered. The setting is remembered. |
+| `{"command": "reset-position"}` | Moves the blocks back to their default spots. |
 
 Any object form can also carry `"label"`.
 
