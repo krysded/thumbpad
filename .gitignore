@@ -1,0 +1,9 @@
+# Private / local-only
+CLAUDE.md
+/data/raw/
+
+# Build output
+build/
+*.o
+__pycache__/
+.cache/
