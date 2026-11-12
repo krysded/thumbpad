@@ -20,4 +20,11 @@ manners in open source, and it helps people find where ideas came from.
   it. MessagEase is a separate, proprietary product. This project isn't affiliated with
   or endorsed by Exideas.
 
+## Third-party files
+
+- `protocols/input-method-unstable-v1.xml`: from
+  [wayland-protocols](https://gitlab.freedesktop.org/wayland/wayland-protocols),
+  © 2012, 2013 Intel Corporation, MIT license (the notice is kept inside the file).
+  It is not covered by the Unlicense.
+
 If you contribute code from another project, add it to this list along with its license.
