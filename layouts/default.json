@@ -1,0 +1,175 @@
+{
+  "name": "placeholder",
+  "comment": "Placeholder grid for testing the engine. The real layout will be optimised from frequency data.",
+  "settings": {
+    "keyMm": 15,
+    "gapMm": 1.2,
+    "swipeThresholdMm": 3.5,
+    "longPressMs": 450,
+    "opacity": 0.92,
+    "requiredChars": "abcdefghijklmnopqrstuvwxyzáčďéěíňóřšťúůýž.,?!-:;'\"/()@#_=+*"
+  },
+  "layers": {
+    "main": {
+      "landscape": [
+        {
+          "edge": "left",
+          "rows": [
+            [
+              {"tap": "n", "long": "1", "swipe": {"tr": "ň", "r": "b"}},
+              {"tap": "t", "long": "2", "swipe": {"tr": "ť", "r": "f"}},
+              {"tap": "l", "long": "3", "swipe": {"r": "&"}},
+              {"tap": {"key": "esc"}, "swipe": {"r": {"key": "tab"}, "b": {"key": "shift+tab"}}}
+            ],
+            [
+              {"tap": "r", "long": "4", "swipe": {"tr": "ř", "r": "g"}},
+              {"tap": "v", "long": "5", "swipe": {"r": "w"}},
+              {"tap": "k", "long": "6", "swipe": {"r": "q"}},
+              {"tap": {"mod": "shift"}, "swipe": {"t": {"mod": "ctrl"}, "r": {"mod": "alt"}, "b": {"mod": "super"}}}
+            ],
+            [
+              {"tap": "d", "long": "7", "swipe": {"tr": "ď", "r": "x"}},
+              {"tap": "p", "long": "8", "swipe": {"tr": "ý", "r": "y"}},
+              {"tap": "m", "long": "9", "swipe": {"tr": "ž", "r": "z"}},
+              {"tap": " ", "slide": "cursor"}
+            ]
+          ]
+        },
+        {
+          "edge": "right",
+          "rows": [
+            [
+              {"tap": {"layer": "numeric"}, "swipe": {"t": {"hide": true}}},
+              {"tap": "e", "long": "0", "swipe": {"t": "ě", "tl": "é", "b": ".", "bl": ","}},
+              {"tap": "a", "swipe": {"t": "á", "b": "?", "bl": "!"}},
+              {"tap": "o", "swipe": {"t": "ó", "b": "-", "bl": ":"}}
+            ],
+            [
+              {"tap": {"key": "backspace"}, "repeat": true, "swipe": {"l": {"key": "ctrl+backspace"}, "r": {"key": "delete"}}},
+              {"tap": "i", "swipe": {"t": "í", "b": ";", "bl": "'"}},
+              {"tap": "s", "swipe": {"t": "š", "b": "\"", "bl": "/"}},
+              {"tap": "u", "swipe": {"t": "ú", "tl": "ů", "b": "(", "bl": ")"}}
+            ],
+            [
+              {"tap": {"key": "enter"}},
+              {"tap": "c", "swipe": {"t": "č", "b": "@", "bl": "#"}},
+              {"tap": "j", "swipe": {"b": "_", "bl": "="}},
+              {"tap": "h", "swipe": {"b": "*", "bl": "+"}}
+            ]
+          ]
+        }
+      ],
+      "portrait": [
+        {
+          "edge": "right",
+          "rows": [
+            [
+              {"tap": {"layer": "numeric"}, "swipe": {"t": {"hide": true}}},
+              {"tap": "a", "swipe": {"t": "á", "br": "v", "b": "ý", "l": ";"}},
+              {"tap": "n", "swipe": {"tl": "ň", "t": "*", "b": "l", "br": "ď"}},
+              {"tap": "i", "swipe": {"t": "í", "l": "q", "bl": "x"}}
+            ],
+            [
+              {"tap": {"key": "backspace"}, "repeat": true, "swipe": {"l": {"key": "ctrl+backspace"}}},
+              {"tap": "h", "swipe": {"tl": "ú", "t": "ů", "r": "k", "b": "=", "bl": "+"}},
+              {"tap": "o", "swipe": {"tl": "u", "t": "d", "tr": "g", "r": "m", "br": "y", "b": "w", "bl": "p", "l": "c"}},
+              {"tap": "r", "swipe": {"t": "ř", "tr": "ó", "l": "b"}}
+            ],
+            [
+              {"tap": {"mod": "shift"}, "swipe": {"t": {"mod": "ctrl"}, "r": {"mod": "alt"}, "b": {"mod": "super"}}},
+              {"tap": "t", "swipe": {"tl": "ť", "t": "č", "tr": "j", "b": "-", "bl": ":"}},
+              {"tap": "e", "swipe": {"tl": "é", "t": "f", "tr": "ě", "b": ".", "bl": ",", "br": "?", "l": "!"}},
+              {"tap": "s", "swipe": {"tl": "z", "t": "š", "bl": "ž", "l": "'", "b": "\""}}
+            ],
+            [
+              {"tap": {"key": "esc"}, "swipe": {"t": {"key": "tab"}}},
+              {"tap": " ", "slide": "cursor", "w": 2},
+              {"tap": {"key": "enter"}, "swipe": {"t": "/", "l": "(", "tl": ")", "tr": "@", "bl": "#", "b": "_"}}
+            ]
+          ]
+        }
+      ]
+    },
+    "numeric": {
+      "landscape": [
+        {
+          "edge": "left",
+          "rows": [
+            [
+              {"tap": "1", "swipe": {"r": "!"}},
+              {"tap": "2", "swipe": {"r": "@"}},
+              {"tap": "3", "swipe": {"r": "#"}},
+              {"tap": {"key": "esc"}, "swipe": {"r": {"key": "tab"}, "b": {"key": "shift+tab"}}}
+            ],
+            [
+              {"tap": "4", "swipe": {"r": "$"}},
+              {"tap": "5", "swipe": {"r": "%"}},
+              {"tap": "6", "swipe": {"r": "^"}},
+              {"tap": {"mod": "shift"}, "swipe": {"t": {"mod": "ctrl"}, "r": {"mod": "alt"}, "b": {"mod": "super"}}}
+            ],
+            [
+              {"tap": "7", "swipe": {"r": "&"}},
+              {"tap": "8", "swipe": {"r": "*"}},
+              {"tap": "9", "swipe": {"r": "("}},
+              {"tap": " ", "slide": "cursor"}
+            ]
+          ]
+        },
+        {
+          "edge": "right",
+          "rows": [
+            [
+              {"tap": {"layer": "main"}, "swipe": {"t": {"hide": true}}},
+              {"tap": "0", "swipe": {"bl": ")", "t": "~"}},
+              {"tap": {"key": "up"}, "repeat": true, "swipe": {"bl": {"key": "pageup"}}},
+              {"tap": ".", "swipe": {"bl": ",", "t": "`"}}
+            ],
+            [
+              {"tap": {"key": "backspace"}, "repeat": true, "swipe": {"l": {"key": "ctrl+backspace"}, "r": {"key": "delete"}}},
+              {"tap": {"key": "left"}, "repeat": true, "swipe": {"t": {"key": "home"}}},
+              {"tap": {"key": "down"}, "repeat": true, "swipe": {"bl": {"key": "pagedown"}}},
+              {"tap": {"key": "right"}, "repeat": true, "swipe": {"t": {"key": "end"}}}
+            ],
+            [
+              {"tap": {"key": "enter"}},
+              {"tap": "+", "swipe": {"b": "-", "bl": "=", "tl": "€"}},
+              {"tap": "[", "swipe": {"b": "]", "bl": "{", "tl": "}"}},
+              {"tap": "<", "swipe": {"b": ">", "bl": "|", "tl": "\\"}}
+            ]
+          ]
+        }
+      ],
+      "portrait": [
+        {
+          "edge": "right",
+          "rows": [
+            [
+              {"tap": {"layer": "main"}, "swipe": {"t": {"hide": true}}},
+              {"tap": "1", "swipe": {"b": "!"}},
+              {"tap": "2", "swipe": {"b": "@", "t": {"key": "up"}}},
+              {"tap": "3", "swipe": {"b": "#"}}
+            ],
+            [
+              {"tap": {"key": "backspace"}, "repeat": true, "swipe": {"l": {"key": "ctrl+backspace"}}},
+              {"tap": "4", "swipe": {"b": "$", "l": {"key": "left"}}},
+              {"tap": "5", "swipe": {"b": "%"}},
+              {"tap": "6", "swipe": {"b": "^", "r": {"key": "right"}}}
+            ],
+            [
+              {"tap": {"mod": "shift"}, "swipe": {"t": {"mod": "ctrl"}, "r": {"mod": "alt"}, "b": {"mod": "super"}}},
+              {"tap": "7", "swipe": {"b": "&", "t": "+"}},
+              {"tap": "8", "swipe": {"b": "*", "t": "-", "l": "[", "r": "]"}},
+              {"tap": "9", "swipe": {"b": "(", "t": "=", "l": "{", "r": "}"}}
+            ],
+            [
+              {"tap": {"key": "esc"}, "swipe": {"t": {"key": "tab"}}},
+              {"tap": "0", "swipe": {"t": ".", "tl": ",", "tr": ")", "l": "<", "r": ">"}},
+              {"tap": " ", "slide": "cursor"},
+              {"tap": {"key": "enter"}, "swipe": {"t": "/", "l": "\\", "tl": "|", "tr": "~", "b": "_"}}
+            ]
+          ]
+        }
+      ]
+    }
+  }
+}

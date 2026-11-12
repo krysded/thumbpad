@@ -1,0 +1,5 @@
+# Let the logged-in (seat) user create virtual input devices via /dev/uinput,
+# which thumbpad uses for real Ctrl/Alt/Esc/arrow key events.
+# Install: sudo cp udev/60-thumbpad-uinput.rules /etc/udev/rules.d/
+#          sudo udevadm control --reload && sudo udevadm trigger /dev/uinput
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"
