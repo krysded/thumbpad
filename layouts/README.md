@@ -60,6 +60,7 @@ recogniser splits the circle into eight 45° sectors.
 | `{"hide": true}` | Hides the keyboard. |
 | `{"command": "toggle-reserve"}` | Turns reserved space on or off. When on, KWin keeps the strip above the keyboard free, so maximized windows such as a terminal shrink instead of being covered. The setting is remembered. |
 | `{"command": "reset-position"}` | Moves the blocks back to their default spots. |
+| `{"command": "settings"}` | Opens the settings panel. |
 
 Any object form can also carry `"label"`.
 
@@ -82,6 +83,11 @@ There are no separate Ctrl/Alt grids to maintain:
 
 ## Settings
 
+These are the layout's defaults. Anything you change in the settings panel is saved to
+`~/.config/thumbpad/settings.ini` and overrides them, so regenerating or editing a layout
+keeps your preferences.
+
+
 | key | default | meaning |
 |---|---|---|
 | `keyMm` | 15 | key size in millimetres (real size, from the screen's physical size) |
@@ -92,4 +98,5 @@ There are no separate Ctrl/Alt grids to maintain:
 | `longPressMs` | 450 | long-press delay |
 | `repeatDelayMs`, `repeatIntervalMs` | 400, 50 | key repeat |
 | `opacity` | 0.92 | background opacity |
+| `showHandle` | true | show the ⌨ tab while the keyboard is hidden |
 | `requiredChars` | "" | `--check` warns when any of these can't be typed from the `main` layer |

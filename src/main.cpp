@@ -4,7 +4,9 @@
 #include "keyboardui.h"
 #include "layout.h"
 #include "renderer.h"
+#include "settingswindow.h"
 #include "uinput.h"
+#include "usersettings.h"
 
 #include <QCommandLineParser>
 #include <QDBusConnection>
@@ -14,6 +16,7 @@
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QGuiApplication>
+#include <QQuickStyle>
 #include <QStandardPaths>
 #include <QTimer>
 #include <cstdio>
@@ -98,7 +101,16 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    const QString layoutPath = findLayout(parser.value(layoutOpt));
+    // Layout file: --layout, else the one chosen in settings, else the default.
+    UserSettings userSettings;
+    auto chooseLayout = [&parser, &layoutOpt, &userSettings] {
+        if (parser.isSet(layoutOpt))
+            return parser.value(layoutOpt);
+        if (!userSettings.layout().isEmpty() && QFileInfo::exists(userSettings.layout()))
+            return userSettings.layout();
+        return findLayout(QString());
+    };
+    QString layoutPath = chooseLayout();
     std::shared_ptr<Layout> layout = loadLayout(layoutPath);
     if (!layout) {
         qWarning("thumbpad: cannot load layout %s", qPrintable(layoutPath));
@@ -146,17 +158,27 @@ int main(int argc, char **argv)
 
     Controller controller(im, &uinput);
     KeyboardUi ui(&controller);
+    userSettings.setBase(layout->settings);
+    ui.setSettings(userSettings.effective());
     ui.setLayout(layout);
+    QObject::connect(&userSettings, &UserSettings::changed, &ui,
+                     [&ui, &userSettings] { ui.setSettings(userSettings.effective()); });
+
+    QQuickStyle::setStyle(QStringLiteral("Material"));
+    SettingsWindow settingsWindow(&userSettings, &ui);
+    QObject::connect(&ui, &KeyboardUi::settingsRequested, &settingsWindow, &SettingsWindow::open);
     if (im)
         QObject::connect(im, &InputMethod::contextChanged, &ui, &KeyboardUi::setImActive);
 
-    auto reload = [&ui, layoutPath] {
+    auto reload = [&ui, &userSettings, &layoutPath] {
         if (auto l = loadLayout(layoutPath)) {
+            userSettings.setBase(l->settings); // re-applies the effective settings
             ui.setLayout(l);
             qWarning("thumbpad: reloaded %s", qPrintable(layoutPath));
         }
     };
     DBusIface dbus(&controller, &ui, reload, &app);
+    QObject::connect(&dbus, &DBusIface::settingsRequested, &settingsWindow, &SettingsWindow::open);
     bus.registerObject(kDBusPath, &dbus, QDBusConnection::ExportAllSlots);
 
     // Live reload while editing the layout. Editors often replace the file,
@@ -167,9 +189,21 @@ int main(int argc, char **argv)
     debounce.setInterval(200);
     QObject::connect(&watcher, &QFileSystemWatcher::fileChanged, &debounce,
                      qOverload<>(&QTimer::start));
-    QObject::connect(&debounce, &QTimer::timeout, &app, [&watcher, layoutPath, reload] {
+    QObject::connect(&debounce, &QTimer::timeout, &app, [&watcher, &layoutPath, reload] {
         if (!watcher.files().contains(layoutPath))
             watcher.addPath(layoutPath);
+        reload();
+    });
+    // Another layout picked in the settings window.
+    QObject::connect(&userSettings, &UserSettings::layoutChosen, &app,
+                     [&watcher, &layoutPath, &chooseLayout, reload] {
+        const QString next = chooseLayout();
+        if (next == layoutPath)
+            return;
+        if (!watcher.files().isEmpty())
+            watcher.removePaths(watcher.files());
+        layoutPath = next;
+        watcher.addPath(layoutPath);
         reload();
     });
 

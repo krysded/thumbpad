@@ -54,6 +54,7 @@ struct Settings {
     int repeatDelayMs = 400;
     int repeatIntervalMs = 50;
     double opacity = 0.92;
+    bool showHandle = true; // ⌨ tab while hidden
     QString requiredChars; // coverage check: warn when one is unreachable
 };
 

@@ -214,7 +214,7 @@ std::optional<Layout> Layout::fromJson(const QByteArray &json, QStringList *erro
     const QJsonObject s = root.value("settings").toObject();
     checkFields(s, {"keyMm", "gapMm", "swipeThresholdMm", "slideStepMm", "edgeMarginMm",
                     "bottomMarginMm", "longPressMs", "repeatDelayMs", "repeatIntervalMs",
-                    "opacity", "requiredChars"},
+                    "opacity", "showHandle", "requiredChars"},
                 "settings", errors);
     Settings &st = l.settings;
     st.keyMm = s.value("keyMm").toDouble(st.keyMm);
@@ -227,6 +227,7 @@ std::optional<Layout> Layout::fromJson(const QByteArray &json, QStringList *erro
     st.repeatDelayMs = s.value("repeatDelayMs").toInt(st.repeatDelayMs);
     st.repeatIntervalMs = s.value("repeatIntervalMs").toInt(st.repeatIntervalMs);
     st.opacity = s.value("opacity").toDouble(st.opacity);
+    st.showHandle = s.value("showHandle").toBool(st.showHandle);
     st.requiredChars = s.value("requiredChars").toString();
 
     const QJsonObject layers = root.value("layers").toObject();

@@ -186,7 +186,8 @@ Action parseAction(const QJsonValue &v, QString *error)
     } else if (o.contains("command")) {
         a.type = Action::Type::Command;
         a.command = o.value("command").toString();
-        if (a.command != "toggle-reserve" && a.command != "reset-position") {
+        if (a.command != "toggle-reserve" && a.command != "reset-position" &&
+            a.command != "settings") {
             *error = QStringLiteral("unknown command \"%1\"").arg(a.command);
             return {};
         }
@@ -238,6 +239,7 @@ QString displayLabel(const Action &a, bool shifted)
     case Action::Type::Hide:
         return QStringLiteral("▾");
     case Action::Type::Command:
+        if (a.command == "settings") return QStringLiteral("⚙");
         return a.command == "toggle-reserve" ? QStringLiteral("⇕") : QStringLiteral("⟲");
     }
     return {};

@@ -49,6 +49,10 @@ to it, install `udev/60-thumbpad-uinput.rules` (see the comments in that file).
 
 When the keyboard is hidden, a small ⌨ tab on the right screen edge brings it back.
 
+Swipe up on the right `123` key (in portrait: on Esc) to open the settings panel:
+key size, opacity, swipe and long-press timing, key repeat, reserved space, and the
+layout file. Changes apply live and are saved to `~/.config/thumbpad/settings.ini`.
+
 ## Layout
 
 The layout is one JSON file, documented in [layouts/README.md](layouts/README.md).

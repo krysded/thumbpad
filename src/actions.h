@@ -19,6 +19,7 @@ constexpr int ModCount = 4;
 //   {"hide": true}             -> hide the keyboard
 //   {"command": "toggle-reserve"} -> keep screen space free above the keyboard
 //   {"command": "reset-position"} -> move the blocks back to their default place
+//   {"command": "settings"}       -> open the settings panel
 // Any object form may also carry "label" to override the displayed text.
 struct Action {
     enum class Type { None, Text, Key, Mod, Layer, Hide, Command };

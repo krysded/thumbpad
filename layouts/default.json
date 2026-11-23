@@ -161,7 +161,11 @@
         "long": {
          "command": "reset-position"
         },
-        "slide": "move"
+        "swipe": {
+         "t": {
+          "command": "settings"
+         }
+        }
        },
        {
         "tap": "y",
@@ -489,6 +493,9 @@
          },
          "b": {
           "key": "shift+tab"
+         },
+         "t": {
+          "command": "settings"
          }
         }
        },
@@ -657,7 +664,11 @@
         "long": {
          "command": "reset-position"
         },
-        "slide": "move"
+        "swipe": {
+         "t": {
+          "command": "settings"
+         }
+        }
        },
        {
         "tap": {
@@ -917,6 +928,9 @@
          },
          "b": {
           "key": "shift+tab"
+         },
+         "t": {
+          "command": "settings"
          }
         }
        },

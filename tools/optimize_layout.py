@@ -327,7 +327,14 @@ ENTER = {"tap": {"key": "enter"}}
 
 
 def layer_key(name):
+    """Layer switch that is also the drag handle for moving the keyboard."""
     return {"tap": {"layer": name}, "long": {"command": "reset-position"}, "slide": "move"}
+
+
+def layer_settings_key(name):
+    """Layer switch whose upward swipe opens the settings panel."""
+    return {"tap": {"layer": name}, "long": {"command": "reset-position"},
+            "swipe": {"t": {"command": "settings"}}}
 
 
 # Landscape special keys. Each block: 3 rows of [letters x3 + special column],
@@ -343,7 +350,7 @@ def landscape_blocks(left, right, layer_main=True):
     """left/right: 3x3 key dicts indexed [row][col_out], col_out 0 = screen edge."""
     other = "numeric" if layer_main else "main"
     sp_l = [ESC_L, MODS, layer_key(other)]
-    sp_r = [layer_key(other), BKSP, NAV]
+    sp_r = [layer_settings_key(other), BKSP, NAV]
     rows_l = [[left[r][0], left[r][1], left[r][2], sp_l[r]] for r in range(3)]
     rows_r = [[sp_r[r], right[r][2], right[r][1], right[r][0]] for r in range(3)]
     rows_l.append([{"tap": " ", "slide": "cursor", "w": 3}, TAB])
@@ -441,7 +448,8 @@ def new_column(P, left, right, lam):
 def portrait_block(slots, layer_main=True):
     sp = [layer_key("numeric" if layer_main else "main"), BKSP, MODS]
     rows = [[sp[r]] + [slots[r * 3 + c] for c in range(3)][::-1] for r in range(3)]
-    rows.append([ESC, {"tap": " ", "slide": "cursor", "w": 2},
+    esc = {**ESC, "swipe": {**ESC["swipe"], "t": {"command": "settings"}}}
+    rows.append([esc, {"tap": " ", "slide": "cursor", "w": 2},
                  {"tap": {"key": "enter"}, "swipe": {"t": {"key": "tab"}}}])
     return [{"edge": "right", "rows": rows}]
 

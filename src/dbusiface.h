@@ -28,11 +28,15 @@ public Q_SLOTS:
     void Hide();
     void Reload();
     void ToggleReserve();
+    void OpenSettings() { Q_EMIT settingsRequested(); }
     void ResetPositions();
     void MoveBlock(int index, double dx, double dy);
     // Runs one action given as JSON: "\"a\"" commits text, '{"key":"esc"}' a key.
     QString Press(const QString &actionJson);
     QString State();
+
+Q_SIGNALS:
+    void settingsRequested();
 
 private:
     Controller *m_controller;

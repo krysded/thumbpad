@@ -22,6 +22,7 @@ public:
     void setBlock(const Block *block, double pxPerMm);
     const Block *block() const { return m_block; }
     void cancelAll();
+    void setSettings(const Settings &settings) { m_settings = settings; update(); }
 
 Q_SIGNALS:
     // Asks the owner to move this window by delta (logical px, screen axes).

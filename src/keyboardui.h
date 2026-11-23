@@ -49,6 +49,7 @@ protected:
 class KeyboardUi : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool reserveSpace READ reserveSpace WRITE setReserveSpace NOTIFY reserveSpaceChanged)
 public:
     explicit KeyboardUi(Controller *controller, QObject *parent = nullptr);
     ~KeyboardUi() override;
@@ -65,7 +66,21 @@ public:
     void setReserveSpace(bool reserve);
     bool reserveSpace() const { return m_reserve; }
     void moveBlock(int index, QPointF delta);
-    void resetPositions();
+    Q_INVOKABLE void resetPositions();
+
+    // Effective settings (layout defaults + user overrides), applied live.
+    void setSettings(const Settings &settings);
+    void setSettingsOpen(bool open);
+    int reservedHeight() const; // from the screen bottom to the top of the keyboard
+    // Largest screen area clear of the keyboard, for the settings panel.
+    QRect freeArea(int minWidth) const;
+
+Q_SIGNALS:
+    void reserveSpaceChanged();
+    void geometryChanged();
+    void settingsRequested();
+
+public:
     void saveState() const;
 
 private:
@@ -97,6 +112,8 @@ private:
     bool m_imActive = false;
     bool m_visible = false;
     bool m_reserve = false;
+    bool m_settingsOpen = false;
+    Settings m_settings;
 };
 
 } // namespace tp

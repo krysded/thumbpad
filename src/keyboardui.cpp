@@ -181,6 +181,8 @@ void KeyboardUi::onCommand(const QString &command)
 {
     if (command == "toggle-reserve")
         setReserveSpace(!m_reserve);
+    else if (command == "settings")
+        Q_EMIT settingsRequested();
     else if (command == "reset-position")
         resetPositions();
 }
@@ -222,7 +224,7 @@ void KeyboardUi::rebuild()
     const bool port = portrait();
     m_shownPortrait = port;
     m_shownLayer = m_controller->layer();
-    const Settings &st = m_layout->settings;
+    const Settings &st = m_settings;
     const double ppm = pxPerMm();
     const QList<Block> &blocks = currentLayer().blocks(port);
     for (const Block &b : blocks) {
@@ -263,9 +265,8 @@ void KeyboardUi::rebuild()
 void KeyboardUi::createHandle()
 {
     const double ppm = pxPerMm();
-    const double keyMm = m_layout ? m_layout->settings.keyMm : 15.0;
     m_handle = new HandleWindow;
-    m_handle->resize(int(keyMm * 0.5 * ppm), int(keyMm * 0.9 * ppm));
+    m_handle->resize(int(m_settings.keyMm * 0.5 * ppm), int(m_settings.keyMm * 0.9 * ppm));
     auto *lw = LayerShellQt::Window::get(m_handle);
     lw->setLayer(LayerShellQt::Window::LayerOverlay);
     lw->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityNone);
@@ -287,7 +288,7 @@ void KeyboardUi::placeAll()
     const QScreen *s = QGuiApplication::primaryScreen();
     const QSize screen = s ? s->geometry().size() : QSize(1368, 912);
     const double ppm = pxPerMm();
-    const Settings &st = m_layout->settings;
+    const Settings &st = m_settings;
     const double baseBottom = st.bottomMarginMm * ppm;
 
     // Clamp the shared offset so that every block stays fully on screen.
@@ -352,38 +353,105 @@ void KeyboardUi::resetPositions()
 
 void KeyboardUi::setReserveSpace(bool reserve)
 {
+    if (reserve == m_reserve)
+        return;
     m_reserve = reserve;
     updateSpacer();
     updateVisibility();
     saveState();
+    Q_EMIT reserveSpaceChanged();
+}
+
+int KeyboardUi::reservedHeight() const
+{
+    // Up to the top of the highest block.
+    int zone = 0;
+    for (const auto &w : m_windows) {
+        if (!w)
+            continue;
+        const int bottom = onWayland()
+            ? LayerShellQt::Window::get(const_cast<BlockWindow *>(w.data()))->margins().bottom()
+            : 0;
+        zone = std::max(zone, bottom + w->height());
+    }
+    return zone;
+}
+
+QRect KeyboardUi::freeArea(int minWidth) const
+{
+    const QScreen *s = QGuiApplication::primaryScreen();
+    const QRect screen(QPoint(), s ? s->geometry().size() : QSize(1368, 912));
+    // Horizontal spans covered by blocks (at any height).
+    QList<QPair<int, int>> taken;
+    for (const auto &w : m_windows) {
+        if (!w || !w->block())
+            continue;
+        const QMargins m = onWayland()
+            ? LayerShellQt::Window::get(const_cast<BlockWindow *>(w.data()))->margins()
+            : QMargins();
+        const int x = w->block()->edge == "right" ? screen.width() - m.right() - w->width()
+                                                  : m.left();
+        taken << qMakePair(x, x + w->width());
+    }
+    std::sort(taken.begin(), taken.end());
+    int bestX = 0, bestW = 0, cursor = 0;
+    for (const auto &[a, b] : taken) {
+        if (a - cursor > bestW) {
+            bestX = cursor;
+            bestW = a - cursor;
+        }
+        cursor = std::max(cursor, b);
+    }
+    if (screen.width() - cursor > bestW) {
+        bestX = cursor;
+        bestW = screen.width() - cursor;
+    }
+    if (bestW >= minWidth) // e.g. between the two landscape blocks: full height
+        return QRect(bestX, 0, bestW, screen.height());
+    return QRect(0, 0, screen.width(), screen.height() - reservedHeight()); // above it
 }
 
 void KeyboardUi::updateSpacer()
 {
-    if (!m_spacer)
-        return;
-    // Reserve up to the top of the highest block.
-    int zone = 0;
-    for (int i = 0; i < m_windows.size(); ++i) {
-        const BlockWindow *w = m_windows[i];
+    if (m_spacer)
+        LayerShellQt::Window::get(m_spacer)->setExclusiveZone(reservedHeight());
+    Q_EMIT geometryChanged();
+}
+
+void KeyboardUi::setSettings(const Settings &settings)
+{
+    m_settings = settings;
+    const double ppm = pxPerMm();
+    for (const auto &w : m_windows) {
         if (!w)
             continue;
-        const auto *lw = LayerShellQt::Window::get(const_cast<BlockWindow *>(w));
-        zone = std::max(zone, lw->margins().bottom() + w->height());
+        w->setSettings(settings);
+        w->setBlock(w->block(), ppm); // resizes for a new key size
     }
-    LayerShellQt::Window::get(m_spacer)->setExclusiveZone(zone);
+    if (m_handle)
+        m_handle->resize(int(settings.keyMm * 0.5 * ppm), int(settings.keyMm * 0.9 * ppm));
+    placeAll();
+    updateSpacer();
+    updateVisibility();
+}
+
+void KeyboardUi::setSettingsOpen(bool open)
+{
+    m_settingsOpen = open;
+    updateVisibility();
 }
 
 void KeyboardUi::updateVisibility()
 {
-    m_visible = m_pinned || (m_imActive && !m_suppressed);
+    // While the settings panel is open the keyboard stays up for live preview.
+    m_visible = m_settingsOpen || m_pinned || (m_imActive && !m_suppressed);
     for (const auto &w : m_windows)
         if (w)
             w->setVisible(m_visible);
     if (m_spacer)
         m_spacer->setVisible(m_visible && m_reserve);
     if (m_handle)
-        m_handle->setVisible(!m_visible);
+        m_handle->setVisible(!m_visible && m_settings.showHandle);
 }
 
 void KeyboardUi::show()
