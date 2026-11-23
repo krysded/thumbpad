@@ -20,12 +20,18 @@ dev)
     mkdir -p "$apps"
     desktop="$apps/io.github.krysded.thumbpad-dev.desktop"
     sed "s|^Exec=.*|Exec=$bin|; s|^Name=.*|Name=thumbpad (dev build)|" \
-        "$repo/data/io.github.krysded.thumbpad.desktop" > "$desktop"
+        "$repo/data/io.github.krysded.thumbpad.desktop.in" > "$desktop"
     target="$desktop"
     ;;
 thumbpad)
-    target="/usr/share/applications/io.github.krysded.thumbpad.desktop"
-    [[ -f "$target" ]] || target="/usr/local/share/applications/io.github.krysded.thumbpad.desktop"
+    target=""
+    for dir in "$apps" /usr/local/share/applications /usr/share/applications; do
+        if [[ -f "$dir/io.github.krysded.thumbpad.desktop" ]]; then
+            target="$dir/io.github.krysded.thumbpad.desktop"
+            break
+        fi
+    done
+    [[ -n "$target" ]] || { echo "not installed: cmake --install build" >&2; exit 1; }
     ;;
 plasma)
     target="/usr/share/applications/org.kde.plasma.keyboard.desktop"
@@ -41,7 +47,7 @@ status)
     ;;
 esac
 
-kwriteconfig6 --file kwinrc --group Wayland --key InputMethod "$target"
-kwriteconfig6 --file kwinrc --group Wayland --key VirtualKeyboardEnabled true
+kwriteconfig6 --notify --file kwinrc --group Wayland --key InputMethod "$target"
+kwriteconfig6 --notify --file kwinrc --group Wayland --key VirtualKeyboardEnabled true
 qdbus6 org.kde.KWin /KWin reconfigure
 echo "KWin input method -> $target"

@@ -272,7 +272,7 @@ std::optional<Layout> Layout::fromJson(const QByteArray &json, QStringList *erro
                 }
         const QString orient = portrait ? "portrait" : "landscape";
         for (auto it = seen.cbegin(); it != seen.cend(); ++it)
-            if (it.value() > 1)
+            if (it.value() > 1 && !it.key().trimmed().isEmpty()) // space twice is normal
                 *warnings << QStringLiteral("main/%1: \"%2\" appears %3 times")
                                  .arg(orient, it.key()).arg(it.value());
         QString missing;

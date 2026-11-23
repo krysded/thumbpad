@@ -4,7 +4,7 @@ A swipe-gesture on-screen keyboard for Linux tablets (KDE Plasma, Wayland). It's
 for Czech, English and code, and it sends real Ctrl/Alt/Esc/Tab key events, so it also
 works in terminals and Emacs.
 
-> **Status:** early development. Nothing is usable yet.
+> **Status:** early, but in daily use on a Surface Pro 6 (Arch Linux, Plasma 6.7).
 
 ## Inspiration
 
@@ -31,6 +31,35 @@ See [CREDITS.md](CREDITS.md) for more.
 - **Output:** text, including all Czech diacritics, is committed through KWin's input
   method protocol. Modifier chords, arrows, Esc and Tab are sent as real key events
   through uinput.
+
+## Install
+
+Needs Qt 6 (base with Wayland client), layer-shell-qt, cmake and a C++20 compiler.
+
+```sh
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$HOME/.local
+cmake --build build && ctest --test-dir build
+cmake --install build
+scripts/kwin-use.sh thumbpad   # make it KWin's virtual keyboard
+scripts/kwin-use.sh plasma     # switch back to plasma-keyboard
+```
+
+thumbpad sends real key events through `/dev/uinput`. If your user can't write
+to it, install `udev/60-thumbpad-uinput.rules` (see the comments in that file).
+
+When the keyboard is hidden, a small ⌨ tab on the right screen edge brings it back.
+
+## Layout
+
+The layout is one JSON file, documented in [layouts/README.md](layouts/README.md).
+To customise it, copy or symlink it to `~/.config/thumbpad/layout.json`. The
+running keyboard reloads it whenever you save. `thumbpad --check` validates a
+layout, and `thumbpad --preview out.png` draws it to scale.
+
+The default layout is generated from the author's own Czech text:
+`tools/extract_freq.py` counts characters and bigrams, and
+`tools/optimize_layout.py` places letters by simulated annealing. It minimises
+reach effort plus same-thumb bigrams.
 
 ## License
 

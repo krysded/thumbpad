@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=thumbpad
 Comment=Swipe-gesture on-screen keyboard
-Exec=thumbpad
+Exec=@CMAKE_INSTALL_PREFIX@/bin/thumbpad
 Type=Application
 Icon=input-keyboard-virtual
 NoDisplay=true

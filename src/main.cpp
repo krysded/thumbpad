@@ -46,9 +46,9 @@ std::shared_ptr<Layout> loadLayout(const QString &path)
     QStringList errors, warnings;
     auto l = Layout::load(path, &errors, &warnings);
     for (const QString &w : warnings)
-        fprintf(stderr, "thumbpad: warning: %s\n", qPrintable(w));
+        qWarning("thumbpad: warning: %s", qPrintable(w));
     for (const QString &e : errors)
-        fprintf(stderr, "thumbpad: error: %s\n", qPrintable(e));
+        qWarning("thumbpad: error: %s", qPrintable(e));
     if (!l)
         return nullptr;
     return std::make_shared<Layout>(std::move(*l));
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
         QDBusInterface iface(kDBusService, kDBusPath, kDBusInterface);
         QDBusReply<void> r = iface.call(QStringLiteral("Toggle"));
         if (!r.isValid()) {
-            fprintf(stderr, "thumbpad: no running instance: %s\n", qPrintable(r.error().message()));
+            qWarning("thumbpad: no running instance: %s", qPrintable(r.error().message()));
             return 1;
         }
         return 0;
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
     const QString layoutPath = findLayout(parser.value(layoutOpt));
     std::shared_ptr<Layout> layout = loadLayout(layoutPath);
     if (!layout) {
-        fprintf(stderr, "thumbpad: cannot load layout %s\n", qPrintable(layoutPath));
+        qWarning("thumbpad: cannot load layout %s", qPrintable(layoutPath));
         return 1;
     }
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
     if (parser.isSet(previewOpt)) {
         QString err;
         if (!renderPreview(*layout, parser.value(previewOpt), &err)) {
-            fprintf(stderr, "thumbpad: %s\n", qPrintable(err));
+            qWarning("thumbpad: %s", qPrintable(err));
             return 1;
         }
         printf("wrote %s\n", qPrintable(parser.value(previewOpt)));
@@ -121,26 +121,26 @@ int main(int argc, char **argv)
 
     QDBusConnection bus = QDBusConnection::sessionBus();
     if (!bus.registerService(kDBusService)) {
-        fprintf(stderr, "thumbpad: already running (use --toggle)\n");
+        qWarning("thumbpad: already running (use --toggle)");
         return 1;
     }
 
     UInput uinput;
     QString uerr;
     if (!uinput.open(&uerr))
-        fprintf(stderr, "thumbpad: warning: %s; Ctrl/Alt/Esc/arrows won't work\n", qPrintable(uerr));
+        qWarning("thumbpad: warning: %s; Ctrl/Alt/Esc/arrows won't work", qPrintable(uerr));
 
     InputMethod *im = nullptr;
     if (QGuiApplication::platformName().startsWith("wayland")) {
         im = new InputMethod();
         QObject::connect(im, &QWaylandClientExtension::activeChanged, im, [im] {
-            fprintf(stderr, "thumbpad: input method protocol %s\n",
+            qWarning("thumbpad: input method protocol %s",
                     im->isActive() ? "bound" : "lost");
         });
         QTimer::singleShot(1500, im, [im] {
             if (!im->isActive())
-                fprintf(stderr, "thumbpad: input method protocol unavailable (not launched by "
-                                "KWin?), text falls back to ASCII via uinput\n");
+                qWarning("thumbpad: input method protocol unavailable (not launched by "
+                         "KWin?), text falls back to ASCII via uinput");
         });
     }
 
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
     auto reload = [&ui, layoutPath] {
         if (auto l = loadLayout(layoutPath)) {
             ui.setLayout(l);
-            fprintf(stderr, "thumbpad: reloaded %s\n", qPrintable(layoutPath));
+            qWarning("thumbpad: reloaded %s", qPrintable(layoutPath));
         }
     };
     DBusIface dbus(&controller, &ui, reload, &app);
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 
     if (parser.isSet(showOpt))
         ui.show();
-    fprintf(stderr, "thumbpad: running with layout %s\n", qPrintable(layoutPath));
+    qWarning("thumbpad: running with layout %s", qPrintable(layoutPath));
     const int rc = app.exec();
     delete im;
     return rc;
