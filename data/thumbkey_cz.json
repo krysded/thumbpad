@@ -1,0 +1,297 @@
+{
+ "source": "Thumb-Key layout KB_CZ_TYPESPLIT_FULL (author's own design)",
+ "main": [
+  [
+   {
+    "long": "1",
+    "tap": "n",
+    "swipe": {
+     "tl": "ň",
+     "t": "č",
+     "r": "z",
+     "bl": "ž",
+     "br": "c",
+     "b": "v"
+    }
+   },
+   {
+    "long": "2",
+    "tap": "t",
+    "swipe": {
+     "bl": "ť",
+     "br": "w",
+     "b": "x",
+     "r": "q",
+     "tl": {
+      "mod": "ctrl"
+     },
+     "tr": {
+      "mod": "alt"
+     }
+    }
+   },
+   {
+    "special": "NUMERIC_KEY_ITEM"
+   },
+   {
+    "long": "3",
+    "tap": "e",
+    "swipe": {
+     "tl": "é",
+     "t": "ě",
+     "tr": ",",
+     "r": ".",
+     "br": "!",
+     "b": "?",
+     "bl": ":",
+     "l": ";"
+    }
+   },
+   {
+    "long": "4",
+    "tap": "a",
+    "swipe": {
+     "tl": "á",
+     "l": "-",
+     "t": {
+      "mod": "shift"
+     }
+    }
+   }
+  ],
+  [
+   {
+    "long": "5",
+    "tap": "l",
+    "swipe": {
+     "r": "h",
+     "br": "f"
+    }
+   },
+   {
+    "long": "6",
+    "tap": "r",
+    "swipe": {
+     "tl": "ř",
+     "bl": "p",
+     "br": "b",
+     "b": "g",
+     "t": "*",
+     "tr": "=",
+     "l": "<",
+     "r": ">"
+    }
+   },
+   {
+    "special": "SPACEBAR_ALL_DIRECTIONS"
+   },
+   {
+    "tap": "o",
+    "swipe": {
+     "tl": "ó",
+     "t": "{",
+     "tr": "}",
+     "r": "\"",
+     "br": "'",
+     "b": "`",
+     "bl": "„",
+     "l": "“"
+    }
+   },
+   {
+    "tap": "i",
+    "swipe": {
+     "tl": "í",
+     "t": "+",
+     "br": "/",
+     "b": "%",
+     "bl": "^",
+     "l": "~"
+    }
+   }
+  ],
+  [
+   {
+    "long": "9",
+    "tap": "d",
+    "swipe": {
+     "tl": "ď",
+     "r": "k"
+    }
+   },
+   {
+    "long": "0",
+    "tap": "m",
+    "swipe": {
+     "bl": "j",
+     "tl": "(",
+     "tr": ")",
+     "l": "[",
+     "r": "]"
+    }
+   },
+   {
+    "special": "BACKSPACE_KEY_ITEM"
+   },
+   {
+    "tap": "s",
+    "swipe": {
+     "tl": "š",
+     "r": "y",
+     "br": "ý",
+     "t": "@",
+     "tr": "#",
+     "b": "$",
+     "bl": "&",
+     "l": "_"
+    }
+   },
+   {
+    "tap": "u",
+    "swipe": {
+     "tl": "ú",
+     "t": "ů",
+     "tr": "|",
+     "r": "\\",
+     "bl": "–"
+    }
+   }
+  ],
+  [
+   {
+    "special": "EMOJI_KEY_ITEM"
+   },
+   {
+    "special": "SPACEBAR_KEY_ITEM"
+   },
+   {
+    "special": "RETURN_KEY_ITEM"
+   }
+  ]
+ ],
+ "numeric": [
+  [
+   {
+    "tap": "1",
+    "swipe": {
+     "t": "/"
+    }
+   },
+   {
+    "tap": "2",
+    "swipe": {
+     "t": "*"
+    }
+   },
+   {
+    "tap": "3",
+    "swipe": {
+     "t": "-"
+    }
+   },
+   {
+    "special": "ABC_KEY_ITEM"
+   },
+   {
+    "tap": "́",
+    "swipe": {
+     "tl": "/",
+     "t": "*",
+     "tr": "-",
+     "r": "+",
+     "br": "="
+    }
+   }
+  ],
+  [
+   {
+    "tap": "4",
+    "swipe": {
+     "tl": "{",
+     "l": "(",
+     "bl": "[",
+     "br": "@"
+    }
+   },
+   {
+    "tap": "5",
+    "swipe": {
+     "bl": "$",
+     "b": "€",
+     "br": "#"
+    }
+   },
+   {
+    "tap": "6",
+    "swipe": {
+     "t": "+",
+     "br": "'",
+     "bl": "|",
+     "b": "~"
+    }
+   },
+   {
+    "tap": "0"
+   },
+   {
+    "tap": "̈",
+    "swipe": {
+     "tr": "}",
+     "r": ")",
+     "br": "]",
+     "bl": "\""
+    }
+   }
+  ],
+  [
+   {
+    "tap": "7",
+    "swipe": {
+     "tl": "<",
+     "bl": "^"
+    }
+   },
+   {
+    "tap": "8",
+    "swipe": {
+     "tl": "`",
+     "br": "&",
+     "bl": "_"
+    }
+   },
+   {
+    "tap": "9",
+    "swipe": {
+     "b": ".",
+     "l": ",",
+     "r": "!",
+     "t": "%"
+    }
+   },
+   {
+    "special": "BACKSPACE_KEY_ITEM"
+   },
+   {
+    "tap": "̀",
+    "swipe": {
+     "l": "?",
+     "tr": ">",
+     "b": ":",
+     "t": ";",
+     "br": "\\"
+    }
+   }
+  ],
+  [
+   {
+    "special": "EMOJI_KEY_ITEM"
+   },
+   {
+    "special": "SPACEBAR_KEY_ITEM"
+   },
+   {
+    "special": "RETURN_KEY_ITEM"
+   }
+  ]
+ ]
+}

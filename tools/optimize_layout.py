@@ -330,19 +330,121 @@ def layer_key(name):
     return {"tap": {"layer": name}, "long": {"command": "reset-position"}, "slide": "move"}
 
 
-def landscape_rows(slots, layer_main=True):
-    """slots: 18 key dicts (9 left then 9 right) in (row, col_out) order."""
-    left = slots[:9]
-    right = slots[9:]
-    rows_l, rows_r = [], []
-    specials_l = [ESC, MODS, SPACE_SLIDE]
-    specials_r = [layer_key("numeric" if layer_main else "main"), BKSP, SPACE_ENTER]
-    for r in range(3):
-        lk = [left[r * 3 + c] for c in range(3)]          # outer, middle, inner
-        rk = [right[r * 3 + c] for c in range(3)]
-        rows_l.append(lk + [specials_l[r]])               # edge on the left
-        rows_r.append([specials_r[r]] + rk[::-1])         # edge on the right
+# Landscape special keys. Each block: 3 rows of [letters x3 + special column],
+# then a bottom row with space under the letters.
+NAV = {"label": "✥", "swipe": {"t": {"key": "up"}, "b": {"key": "down"}, "l": {"key": "left"},
+                               "r": {"key": "right"}, "tl": {"key": "home"}, "tr": {"key": "end"},
+                               "bl": {"key": "pageup"}, "br": {"key": "pagedown"}}}
+ESC_L = {"tap": {"key": "esc"}, "long": {"hide": True}}
+TAB = {"tap": {"key": "tab"}, "swipe": {"t": {"key": "shift+tab"}}}
+
+
+def landscape_blocks(left, right, layer_main=True):
+    """left/right: 3x3 key dicts indexed [row][col_out], col_out 0 = screen edge."""
+    other = "numeric" if layer_main else "main"
+    sp_l = [ESC_L, MODS, layer_key(other)]
+    sp_r = [layer_key(other), BKSP, NAV]
+    rows_l = [[left[r][0], left[r][1], left[r][2], sp_l[r]] for r in range(3)]
+    rows_r = [[sp_r[r], right[r][2], right[r][1], right[r][0]] for r in range(3)]
+    rows_l.append([{"tap": " ", "slide": "cursor", "w": 3}, TAB])
+    rows_r.append([ENTER, {"tap": " ", "w": 3}])
     return [{"edge": "left", "rows": rows_l}, {"edge": "right", "rows": rows_r}]
+
+
+def old_grid(rows):
+    """Thumb-Key 5-column rows -> (left, right) 3x3 grids with the old keys in
+    the two columns nearest the centre: old [c0 c1 | centre | c3 c4] becomes
+    left [new, c0, c1] and right [c3, c4, new] on screen. The edge column
+    (col_out 0) is left as None for the caller."""
+    left = [[None, rows[r][0], rows[r][1]] for r in range(3)]
+    right = [[None, rows[r][4], rows[r][3]] for r in range(3)]
+    return left, right
+
+
+def clean_cell(c):
+    return None if c is None or "special" in c else {k: v for k, v in c.items()}
+
+
+def is_letter(a):
+    return isinstance(a, str) and len(a) == 1 and "a" <= a <= "z"
+
+
+def outer_column(P, left, right, lam):
+    """Picks duplicate taps for the 6 new edge-column keys.
+
+    Every letter stays where it was; a new tap is only an extra, faster way to
+    type it. Cost model as in the optimiser: per-key effort, swipe factor,
+    direction penalties, plus same-thumb bigrams."""
+    pos = {}  # letter -> (side, cost of its old slot)
+    for side, grid in ((0, left), (1, right)):
+        for r in range(3):
+            for co in (1, 2):
+                cell = grid[r][co]
+                if not cell:
+                    continue
+                tap, sw = slot_costs(r, co, side == 1)
+                if is_letter(cell.get("tap")):
+                    pos[cell["tap"]] = (side, tap)
+                for d, a in cell.get("swipe", {}).items():
+                    if is_letter(a):
+                        pos[a] = (side, sw[d])
+    gi = {g: i for i, g in enumerate(P.groups)}
+    base_side = [0] * len(P.groups)
+    for g in P.groups:
+        base_side[gi[g]] = pos[g][0] if g in pos else 0
+    slots = [(side, r) for side in (0, 1) for r in range(3)]
+    cands = sorted((g for g in pos if pos[g][1] > EFFORT[1][0]),
+                   key=lambda g: -P.f[g] * (pos[g][1] - EFFORT[1][0]))[:9]
+
+    def cost(assign):
+        side = base_side[:]
+        c = 0.0
+        for g in pos:
+            c += P.f[g] * pos[g][1]
+        for (sd, r), g in zip(slots, assign):
+            if g is None:
+                continue
+            new = EFFORT[r][0]
+            if new < pos[g][1]:
+                c += P.f[g] * (new - pos[g][1])
+                side[gi[g]] = sd
+        return c + lam * P.side_penalty(side), side
+
+    best = (cost([None] * 6)[0], [None] * 6)
+    baseline = best[0]
+
+    def dfs(i, assign, used):
+        nonlocal best
+        if i == 6:
+            c = cost(assign)[0]
+            if c < best[0]:
+                best = (c, assign[:])
+            return
+        for g in [None] + [g for g in cands if g not in used]:
+            assign.append(g)
+            if g:
+                used.add(g)
+            dfs(i + 1, assign, used)
+            assign.pop()
+            used.discard(g)
+
+    dfs(0, [], set())
+    _, side_old = cost([None] * 6)
+    _, side_new = cost(best[1])
+    alt = lambda sd: 1 - P.side_penalty(sd) / P.wtotal
+    return dict(zip(slots, best[1])), baseline, best[0], alt(side_old), alt(side_new)
+
+
+def outer_key(P, letter, side, row):
+    if letter is None:
+        return None
+    k = {"tap": letter}
+    _, sw = slot_costs(row, 0, side == 1)
+    diac = P.members[letter][1:]
+    if diac:  # duplicates of the old diacritic swipes, same key as the base
+        order = sorted(sw, key=lambda d: sw[d])
+        k["swipe"] = {d: c for d, c in zip(order, sorted(diac, key=lambda c: -P.f[c]))}
+    return k
 
 
 def portrait_block(slots, layer_main=True):
@@ -353,31 +455,25 @@ def portrait_block(slots, layer_main=True):
     return [{"edge": "right", "rows": rows}]
 
 
-def numeric_layers():
+FKEYS = {"tap": {"key": "f5"}, "swipe": {"t": {"key": "f1"}, "tr": {"key": "f2"}, "r": {"key": "f3"},
+                                      "br": {"key": "f4"}, "b": {"key": "f6"}, "bl": {"key": "f7"},
+                                      "l": {"key": "f8"}, "tl": {"key": "f12"}}}
+
+
+def numeric_layer(old_rows):
+    """Old NUMERIC mode: [1 2 3 | ABC | ◌́], [4 5 6 | 0 | ◌̈], [7 8 9 | ⌫ | ◌̀].
+    The 1-9 pad fills the left block's 3x3; 0 and the combining-accent keys
+    go on the right block, in the same relative order as on Android."""
+    left = [[clean_cell(old_rows[r][c]) for c in range(3)] for r in range(3)]
+    right = [[FKEYS if r == 0 else None, clean_cell(old_rows[r][4]),
+              clean_cell(old_rows[r][3])] for r in range(3)]
+    land = landscape_blocks(left, right, layer_main=False)
+
     def d(n, sw):
         return {"tap": n, "swipe": sw}
-    pad = [d("1", {"t": "!"}), d("2", {"t": "@"}), d("3", {"t": "#"}),
-           d("4", {"t": "$"}), d("5", {"t": "%"}), d("6", {"t": "^"}),
-           d("7", {"t": "&"}), d("8", {"t": "*"}), d("9", {"t": "("})]
-    nav = [
-        {"tap": "0", "swipe": {"t": ")", "r": ".", "b": ","}},
-        {"tap": {"key": "up"}, "repeat": True, "swipe": {"t": {"key": "pageup"}}},
-        {"tap": {"key": "f5"}, "swipe": {"t": {"key": "f1"}, "tr": {"key": "f2"}, "r": {"key": "f3"},
-                                         "br": {"key": "f4"}, "b": {"key": "f6"}, "bl": {"key": "f7"},
-                                         "l": {"key": "f8"}, "tl": {"key": "f12"}}},
-        {"tap": {"key": "left"}, "repeat": True, "swipe": {"t": {"key": "home"}}},
-        {"tap": {"key": "down"}, "repeat": True, "swipe": {"b": {"key": "pagedown"}}},
-        {"tap": {"key": "right"}, "repeat": True, "swipe": {"t": {"key": "end"}}},
-        {"tap": "+", "swipe": {"t": "-", "r": "=", "b": "€"}},
-        {"tap": "[", "swipe": {"t": "]", "r": "{", "b": "}"}},
-        {"tap": "<", "swipe": {"t": ">", "r": "|", "b": "\\"}},
-    ]
-    # nav is listed in (row, col_out) order for the right block.
-    land = landscape_rows(pad + nav, layer_main=False)
     port_pad = [d("1", {"b": "!", "l": "+"}), d("2", {"b": "@", "l": "-"}), d("3", {"b": "#", "l": "*"}),
                 d("4", {"b": "$", "l": "/"}), d("5", {"b": "%", "l": "="}), d("6", {"b": "^", "l": "."}),
                 d("7", {"b": "&", "l": "("}), d("8", {"b": "*", "l": ")"}), d("9", {"b": "(", "l": ","})]
-    # portrait_block lists keys in (row, col_out) order; reverse rows so 1-2-3 reads left to right.
     port_slots = []
     for r in range(3):
         port_slots += port_pad[r * 3:r * 3 + 3][::-1]
@@ -397,13 +493,20 @@ def main():
 
     freq = json.load(open(ROOT / "data/freq.json", encoding="utf-8"))
 
-    # Landscape: left block (side 0) and mirrored right block (side 1).
-    keys_l = make_keys([(0, False), (1, True)])
-    P = Problem(freq, keys_l, a.lam)
-    (cost, tap, swipes), all_costs = optimise(P, a.restarts, a.iters, a.seed)
-    st = stats(P, keys_l, tap, swipes)
-    slots_l = fill_slots(P, keys_l, tap, swipes)
-    dropped_l = place_symbols(keys_l, slots_l, SYMBOLS)
+    # Landscape: the author's Thumb-Key layout in the two columns nearest the
+    # centre, plus optimised duplicate taps on the new edge column.
+    old = json.load(open(ROOT / "data/thumbkey_cz.json", encoding="utf-8"))
+    left, right = old_grid(old["main"])
+    for grid in (left, right):
+        for r in range(3):
+            grid[r] = [clean_cell(c) for c in grid[r]]
+    # Fill the long-press gaps in reading order (row 1: l5 r6 o7 i8).
+    for cell, digit in ((right[1][2], "7"), (right[1][1], "8")):
+        cell.setdefault("long", digit)
+    P = Problem(freq, [], a.lam)
+    outer, cost_old, cost_new, alt_old, alt_new = outer_column(P, left, right, a.lam)
+    for (side, r), g in outer.items():
+        (left if side == 0 else right)[r][0] = outer_key(P, g, side, r)
 
     # Portrait: one right-edge block, one thumb, so no alternation term.
     keys_p = make_keys([(0, True)])
@@ -412,21 +515,11 @@ def main():
     slots_p = fill_slots(P2, keys_p, tap_p, swipes_p)
     dropped_p = place_symbols(keys_p, slots_p, SYMBOLS)
 
-    # Digits: long-press phone pad on the left block (1-2-3 on the top row,
-    # read left to right on screen = outer to inner), 0 on the right centre key.
-    main_slots = []
-    for k, sm in enumerate(slots_l):
-        long = None
-        if k < 9:
-            long = str(k + 1)
-        elif k == 9 + 4:
-            long = "0"
-        main_slots.append(key_json(sm, long))
     port_slots = [key_json(sm) for sm in slots_p]
 
     layout = {
         "name": "thumbpad cz",
-        "comment": "Generated by tools/optimize_layout.py from data/freq.json. "
+        "comment": "Generated by tools/optimize_layout.py from data/thumbkey_cz.json and data/freq.json. "
                    "Edit by hand freely; rerunning the optimizer overwrites it.",
         "settings": {
             "keyMm": 15, "gapMm": 1.2, "swipeThresholdMm": 3.5, "longPressMs": 450,
@@ -434,23 +527,18 @@ def main():
             "requiredChars": "abcdefghijklmnopqrstuvwxyz" + DIACRITICS + ".,?!-:;'\"/()@#_=+*",
         },
         "layers": {
-            "main": {"landscape": landscape_rows(main_slots),
+            "main": {"landscape": landscape_blocks(left, right),
                      "portrait": portrait_block(port_slots)},
-            "numeric": numeric_layers(),
+            "numeric": numeric_layer(old["numeric"]),
         },
     }
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(layout, f, ensure_ascii=False, indent=1)
 
-    spread = sorted(all_costs)
-    print(f"landscape: best cost {cost:.5f} (restarts: best {spread[0]:.5f}, "
-          f"median {spread[len(spread) // 2]:.5f}, worst {spread[-1]:.5f})")
-    print(f"  thumb alternation {100 * st['alternation']:.1f}% of letter bigrams, "
-          f"taps cover {100 * st['tapShare']:.1f}% of letters, "
-          f"left thumb {100 * st['leftShare']:.1f}% of letter presses")
-    print(f"  left taps:  {' '.join(tap[:9])}\n  right taps: {' '.join(tap[9:])}")
-    if dropped_l:
-        print(f"  symbols not placed: {dropped_l}")
+    print(f"landscape: old Thumb-Key keys + edge column. cost {cost_old:.4f} -> {cost_new:.4f}, "
+          f"thumb alternation {100 * alt_old:.1f}% -> {100 * alt_new:.1f}%")
+    for (side, r), g in sorted(outer.items()):
+        print(f"  {'left ' if side == 0 else 'right'} edge column, row {r}: {g or '(empty)'}")
     print(f"portrait: best cost {cost_p:.5f}, taps {' '.join(tap_p)}")
     if dropped_p:
         print(f"  symbols not placed (numeric layer only): {dropped_p}")
