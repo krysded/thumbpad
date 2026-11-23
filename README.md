@@ -8,6 +8,13 @@ key events, so it also works in terminals and Emacs.
 > The default layout is Czech + English. Other languages need their own layout
 > file (see [Layouts](#layouts)).
 
+> [!WARNING]
+> **This project was written entirely by an AI (Claude, by Anthropic). No human has
+> reviewed the code.** The author designed the keyboard layout and tested the result
+> on their own tablet, but nobody has read the source for bugs or security problems.
+> thumbpad creates a virtual input device and can type into any application, so
+> read the code before trusting it, and use it at your own risk.
+
 ## Inspiration
 
 thumbpad wouldn't exist without two projects:
@@ -155,10 +162,48 @@ drag handle, and swiping up on **Esc** opens the settings.
 
 ### Settings
 
-Key size, gap and opacity; swipe distance, long-press delay, key repeat and
-cursor-slide speed; reserve space; the ⌨ tab; and which layout file to use. Changes
-apply immediately, while the keyboard stays visible for a live preview. They are
-saved to `~/.config/thumbpad/settings.ini` and override the layout's defaults.
+Open the panel by swiping up on the right **123** key (in portrait: on **Esc**), or
+with `qdbus6 io.github.krysded.thumbpad / OpenSettings`. The panel takes no keyboard
+focus, so the text field you were typing in stays active, and the keyboard stays
+visible while the panel is open. **Every change applies immediately**, so the easiest
+way to tune it is to type with one thumb while adjusting with the other.
+
+**Size and placement**
+
+| Setting | Range | Default | What it does |
+|---|---|---|---|
+| Key size | 10–22 mm | 15 mm | Width and height of one key. The size is in real millimetres, computed from the screen's physical size, so it's the same on any display. |
+| Gap between keys | 0–3 mm | 1.2 mm | Space between neighbouring keys. A bigger gap makes it clearer which key you hit, at the cost of a smaller target. |
+| Opacity | 0.30–1.00 | 0.92 | Opacity of the background behind the keys. Lower it to see more of the window underneath. |
+| Reserve space | on / off | off | When on, KWin keeps the area above the keyboard free: maximized windows shrink instead of being covered. Useful for terminals, whose prompt sits at the bottom. Also toggled by long-pressing **⇧**. |
+| Reset keyboard position | button | | Puts the keyboard back in its default place after you dragged it. Same as long-pressing **123**. |
+
+**Touch**
+
+| Setting | Range | Default | What it does |
+|---|---|---|---|
+| Swipe distance | 1.5–8 mm | 3.5 mm | How far your finger must move before a touch counts as a swipe instead of a tap. Raise it if taps come out as swipe characters; lower it if short swipes come out as taps. |
+| Long-press delay | 200–1000 ms | 450 ms | How long to hold a key, without moving, for its long-press character (the digits). Lower is faster; too low and slow taps turn into digits. |
+| Key repeat starts after | 150–1000 ms | 400 ms | How long to hold a repeating key (**⌫**) before it starts repeating. |
+| Key repeat interval | 20–200 ms | 50 ms | Time between repeats once repeating; lower deletes faster. |
+| Cursor slide: distance per character | 1–6 mm | 2.5 mm | How far to slide along the space bar to move the cursor by one character. Moving up or down a line needs twice that distance. Lower means faster but less precise. |
+
+**Behaviour**
+
+| Setting | Default | What it does |
+|---|---|---|
+| Show the ⌨ tab while hidden | on | A small tab on the right screen edge that brings back a hidden keyboard. If you turn it off, a hidden keyboard only reappears when you focus a new text field. Without a hardware keyboard, that can leave you stuck. |
+| Layout | Automatic | Which layout file to use. *Automatic* follows the order described in [Layouts](#layouts). The list shows `~/.config/thumbpad/layout.json`, files in `~/.config/thumbpad/layouts/`, and the installed layouts. |
+
+**Reset all to layout defaults** clears everything you changed. Values shown in
+yellow are your own; the others are the defaults from the layout file.
+
+Your values are saved to `~/.config/thumbpad/settings.ini` (section `[keyboard]`)
+and override the layout's `settings` block, so they survive layout updates. The
+keyboard position and the reserve-space switch are remembered separately in
+`~/.config/thumbpad/state.ini`. If you edit either file by hand, restart thumbpad
+afterwards with `pkill -x thumbpad` (KWin starts it again); otherwise the running
+keyboard may overwrite your edit.
 
 ### Command line and D-Bus
 
@@ -197,25 +242,6 @@ Before using a layout, check it:
 thumbpad --layout my.json --check            # errors, warnings and a table of every key
 thumbpad --layout my.json --preview out.png  # to-scale picture of every layer
 ```
-
-### How the default layout was made
-
-The scripts in `tools/` need only Python 3:
-
-- `extract_freq.py` counts characters and bigrams in a text archive (the author's own
-  tweets, which are not in this repository; only the aggregate counts in
-  `data/freq.json` are).
-- `import_thumbkey.py` reads the author's Thumb-Key layout into `data/thumbkey_cz.json`.
-- `optimize_layout.py` builds `layouts/default.json`. Landscape keeps the Thumb-Key key
-  positions and moves the six best swipe-only letters to taps in a new column. Portrait
-  is optimised from scratch by simulated annealing. Both minimise reach effort plus
-  same-thumb bigrams.
-
-The optimiser is currently tailored to Czech: the diacritics are a constant in
-`optimize_layout.py`, and the landscape layout starts from the Thumb-Key import. For
-another language, run `extract_freq.py` on a plain-text file of your own writing
-(entries separated by lines containing only `---`), adjust `DIACRITICS` and the
-landscape step, or simply write a layout by hand in the JSON format.
 
 ## Troubleshooting
 
