@@ -352,12 +352,13 @@ def landscape_blocks(left, right, layer_main=True):
 
 
 def old_grid(rows):
-    """Thumb-Key 5-column rows -> (left, right) 3x3 grids with the old keys in
-    the two columns nearest the centre: old [c0 c1 | centre | c3 c4] becomes
-    left [new, c0, c1] and right [c3, c4, new] on screen. The edge column
-    (col_out 0) is left as None for the caller."""
-    left = [[None, rows[r][0], rows[r][1]] for r in range(3)]
-    right = [[None, rows[r][4], rows[r][3]] for r in range(3)]
+    """Thumb-Key 5-column rows -> (left, right) 3x3 grids indexed [row][col_out]
+    (col_out 0 = screen edge). The old keys keep their relative positions in
+    the two columns at the screen edge: old [c0 c1 | centre | c3 c4] becomes
+    left [c0, c1, new] and right [new, c3, c4] on screen. The new column next
+    to the special keys (col_out 2) is left as None for the caller."""
+    left = [[rows[r][0], rows[r][1], None] for r in range(3)]
+    right = [[rows[r][4], rows[r][3], None] for r in range(3)]
     return left, right
 
 
@@ -369,82 +370,72 @@ def is_letter(a):
     return isinstance(a, str) and len(a) == 1 and "a" <= a <= "z"
 
 
-def outer_column(P, left, right, lam):
-    """Picks duplicate taps for the 6 new edge-column keys.
+def new_column(P, left, right, lam):
+    """Moves the 6 best swipe-only letters to taps in the new column.
 
-    Every letter stays where it was; a new tap is only an extra, faster way to
-    type it. Cost model as in the optimiser: per-key effort, swipe factor,
+    A moved letter leaves its old swipe slot, and so do its diacritics (they
+    always share the base letter's key). Exhaustive search over which letters
+    move and where, scored like the optimiser: per-key effort, swipe factor,
     direction penalties, plus same-thumb bigrams."""
-    pos = {}  # letter -> (side, cost of its old slot)
-    for side, grid in ((0, left), (1, right)):
+    from itertools import permutations
+    grids = (left, right)
+    where = {}  # char -> (side, cost) in the old layout
+    kind = {}   # char -> "tap" or swipe direction
+    for side, grid in enumerate(grids):
         for r in range(3):
-            for co in (1, 2):
+            for co in (0, 1):
                 cell = grid[r][co]
                 if not cell:
                     continue
                 tap, sw = slot_costs(r, co, side == 1)
-                if is_letter(cell.get("tap")):
-                    pos[cell["tap"]] = (side, tap)
+                if isinstance(cell.get("tap"), str):
+                    where[cell["tap"]] = (side, tap)
+                    kind[cell["tap"]] = "tap"
                 for d, a in cell.get("swipe", {}).items():
-                    if is_letter(a):
-                        pos[a] = (side, sw[d])
-    gi = {g: i for i, g in enumerate(P.groups)}
-    base_side = [0] * len(P.groups)
-    for g in P.groups:
-        base_side[gi[g]] = pos[g][0] if g in pos else 0
+                    if isinstance(a, str):
+                        where[a] = (side, sw[d])
+                        kind[a] = d
+    swiped = [g for g in P.groups[:26] if kind.get(g, "tap") != "tap"]
+    cands = sorted(swiped, key=lambda g: -P.f[g])[:9]
     slots = [(side, r) for side in (0, 1) for r in range(3)]
-    cands = sorted((g for g in pos if pos[g][1] > EFFORT[1][0]),
-                   key=lambda g: -P.f[g] * (pos[g][1] - EFFORT[1][0]))[:9]
+    new_costs = {(sd, r): slot_costs(r, 2, sd == 1) for sd, r in slots}
 
-    def cost(assign):
-        side = base_side[:]
-        c = 0.0
-        for g in pos:
-            c += P.f[g] * pos[g][1]
+    def score(assign):
+        pos = dict(where)
         for (sd, r), g in zip(slots, assign):
-            if g is None:
-                continue
-            new = EFFORT[r][0]
-            if new < pos[g][1]:
-                c += P.f[g] * (new - pos[g][1])
-                side[gi[g]] = sd
-        return c + lam * P.side_penalty(side), side
+            tap, sw = new_costs[(sd, r)]
+            pos[g] = (sd, tap)
+            for c, cost in zip(sorted(P.members[g][1:], key=lambda c: -P.f[c]),
+                               sorted(sw.values())):
+                pos[c] = (sd, cost)
+        effort = sum(P.f[c] * pos[c][1] for c in pos if c in P.f)
+        side = [pos[g][0] if g in pos else 0 for g in P.groups]
+        return effort + lam * P.side_penalty(side), side
 
-    best = (cost([None] * 6)[0], [None] * 6)
-    baseline = best[0]
-
-    def dfs(i, assign, used):
-        nonlocal best
-        if i == 6:
-            c = cost(assign)[0]
-            if c < best[0]:
-                best = (c, assign[:])
-            return
-        for g in [None] + [g for g in cands if g not in used]:
-            assign.append(g)
-            if g:
-                used.add(g)
-            dfs(i + 1, assign, used)
-            assign.pop()
-            used.discard(g)
-
-    dfs(0, [], set())
-    _, side_old = cost([None] * 6)
-    _, side_new = cost(best[1])
+    old_cost, old_side = score(())
+    best = min((score(a)[0], a) for a in permutations(cands, 6))
+    new_side = score(best[1])[1]
     alt = lambda sd: 1 - P.side_penalty(sd) / P.wtotal
-    return dict(zip(slots, best[1])), baseline, best[0], alt(side_old), alt(side_new)
 
-
-def outer_key(P, letter, side, row):
-    if letter is None:
-        return None
-    k = {"tap": letter}
-    _, sw = slot_costs(row, 0, side == 1)
-    diac = P.members[letter][1:]
-    if diac:  # duplicates of the old diacritic swipes, same key as the base
-        order = sorted(sw, key=lambda d: sw[d])
-        k["swipe"] = {d: c for d, c in zip(order, sorted(diac, key=lambda c: -P.f[c]))}
-    return k
+    # Apply: remove the moved letters and their diacritics from the old keys.
+    moved = {c for g in best[1] for c in P.members[g]}
+    for grid in grids:
+        for r in range(3):
+            for co in (0, 1):
+                cell = grid[r][co]
+                if cell and "swipe" in cell:
+                    cell["swipe"] = {d: a for d, a in cell["swipe"].items()
+                                     if not (isinstance(a, str) and a in moved)}
+                    if not cell["swipe"]:
+                        del cell["swipe"]
+    for (sd, r), g in zip(slots, best[1]):
+        _, sw = new_costs[(sd, r)]
+        key = {"tap": g}
+        diac = sorted(P.members[g][1:], key=lambda c: -P.f[c])
+        if diac:
+            key["swipe"] = dict(zip(sorted(sw, key=lambda d: sw[d]), diac))
+        grids[sd][r][2] = key
+    return dict(zip(slots, best[1])), old_cost, best[0], alt(old_side), alt(new_side)
 
 
 def portrait_block(slots, layer_main=True):
@@ -465,8 +456,8 @@ def numeric_layer(old_rows):
     The 1-9 pad fills the left block's 3x3; 0 and the combining-accent keys
     go on the right block, in the same relative order as on Android."""
     left = [[clean_cell(old_rows[r][c]) for c in range(3)] for r in range(3)]
-    right = [[FKEYS if r == 0 else None, clean_cell(old_rows[r][4]),
-              clean_cell(old_rows[r][3])] for r in range(3)]
+    right = [[clean_cell(old_rows[r][4]), clean_cell(old_rows[r][3]),
+              FKEYS if r == 0 else None] for r in range(3)]
     land = landscape_blocks(left, right, layer_main=False)
 
     def d(n, sw):
@@ -493,20 +484,18 @@ def main():
 
     freq = json.load(open(ROOT / "data/freq.json", encoding="utf-8"))
 
-    # Landscape: the author's Thumb-Key layout in the two columns nearest the
-    # centre, plus optimised duplicate taps on the new edge column.
+    # Landscape: the author's Thumb-Key layout in the two columns at the
+    # screen edge; the 6 best swipe-only letters move to taps in the new column.
     old = json.load(open(ROOT / "data/thumbkey_cz.json", encoding="utf-8"))
     left, right = old_grid(old["main"])
     for grid in (left, right):
         for r in range(3):
             grid[r] = [clean_cell(c) for c in grid[r]]
     # Fill the long-press gaps in reading order (row 1: l5 r6 o7 i8).
-    for cell, digit in ((right[1][2], "7"), (right[1][1], "8")):
+    for cell, digit in ((right[1][1], "7"), (right[1][0], "8")):
         cell.setdefault("long", digit)
     P = Problem(freq, [], a.lam)
-    outer, cost_old, cost_new, alt_old, alt_new = outer_column(P, left, right, a.lam)
-    for (side, r), g in outer.items():
-        (left if side == 0 else right)[r][0] = outer_key(P, g, side, r)
+    outer, cost_old, cost_new, alt_old, alt_new = new_column(P, left, right, a.lam)
 
     # Portrait: one right-edge block, one thumb, so no alternation term.
     keys_p = make_keys([(0, True)])
@@ -535,10 +524,10 @@ def main():
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(layout, f, ensure_ascii=False, indent=1)
 
-    print(f"landscape: old Thumb-Key keys + edge column. cost {cost_old:.4f} -> {cost_new:.4f}, "
+    print(f"landscape: old Thumb-Key keys + new column. cost {cost_old:.4f} -> {cost_new:.4f}, "
           f"thumb alternation {100 * alt_old:.1f}% -> {100 * alt_new:.1f}%")
     for (side, r), g in sorted(outer.items()):
-        print(f"  {'left ' if side == 0 else 'right'} edge column, row {r}: {g or '(empty)'}")
+        print(f"  {'left ' if side == 0 else 'right'} new column, row {r}: {g}")
     print(f"portrait: best cost {cost_p:.5f}, taps {' '.join(tap_p)}")
     if dropped_p:
         print(f"  symbols not placed (numeric layer only): {dropped_p}")
