@@ -40,6 +40,8 @@ See [CREDITS.md](CREDITS.md) for more.
   KWin's input-method protocol, independent of your keyboard layout setting.
 - **Movable:** drag the keyboard where you want it; optionally make windows shrink so
   the keyboard never covers what you type.
+- **Works on the lock screen**, so you can type your password without a hardware
+  keyboard.
 - **Settings panel** with live preview, and a **plain JSON layout format** that is
   reloaded as soon as you save it.
 
@@ -101,7 +103,10 @@ scripts/kwin-use.sh thumbpad
 
 This points KWin's input method at thumbpad and turns the virtual keyboard on, and
 KWin starts thumbpad right away. From now on it appears whenever a text field is
-focused.
+focused, including the password field of the lock screen. KWin only lets thumbpad
+onto the lock screen because its `.desktop` file requests the restricted
+`kde_lockscreen_overlay_v1` protocol; the log line `lock screen overlay available`
+confirms it worked.
 
 To go back to Plasma's own keyboard at any time:
 
@@ -116,6 +121,7 @@ scripts/kwin-use.sh plasma
 ```sh
 git pull
 cmake --build build && cmake --install build
+kbuildsycoca6       # in case the .desktop file changed
 pkill -x thumbpad   # KWin restarts it with the new version
 ```
 
@@ -256,6 +262,10 @@ thumbpad --layout my.json --preview out.png  # to-scale picture of every layer
   The log says `cannot open /dev/uinput`.
 - **Wrong characters with Ctrl chords:** chords use US key positions. They are correct
   with a US or Czech QWERTY system layout, but not with QWERTZ or AZERTY.
+- **No keyboard on the lock screen:** look for `lock screen overlay` in the log. If it
+  says `unavailable`, run `kbuildsycoca6`, then `scripts/kwin-use.sh thumbpad` again.
+  Test it safely from a terminal: `loginctl lock-session`, then
+  `loginctl unlock-session` unlocks it without a password.
 - **Locked out after hiding it:** tap the ⌨ tab on the right screen edge. If you turned
   the tab off, focus a new text field, or run `scripts/kwin-use.sh plasma` with a mouse
   or hardware keyboard.

@@ -2,6 +2,7 @@
 #include "dbusiface.h"
 #include "inputmethod.h"
 #include "keyboardui.h"
+#include "lockscreenoverlay.h"
 #include "layout.h"
 #include "renderer.h"
 #include "settingswindow.h"
@@ -158,6 +159,17 @@ int main(int argc, char **argv)
 
     Controller controller(im, &uinput);
     KeyboardUi ui(&controller);
+    std::unique_ptr<LockscreenOverlay> overlay;
+    if (QGuiApplication::platformName().startsWith("wayland")) {
+        overlay = std::make_unique<LockscreenOverlay>();
+        ui.setLockscreenOverlay(overlay.get());
+        QTimer::singleShot(1500, overlay.get(), [o = overlay.get()] {
+            qWarning("thumbpad: lock screen overlay %s", o->isActive()
+                         ? "available"
+                         : "unavailable (needs X-KDE-Wayland-Interfaces in the .desktop file "
+                           "KWin started thumbpad from), the keyboard won't show when locked");
+        });
+    }
     userSettings.setBase(layout->settings);
     ui.setSettings(userSettings.effective());
     ui.setLayout(layout);

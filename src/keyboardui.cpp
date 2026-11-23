@@ -1,6 +1,7 @@
 #include "keyboardui.h"
 #include "blockwindow.h"
 #include "controller.h"
+#include "lockscreenoverlay.h"
 
 #include <LayerShellQt/window.h>
 #include <QGuiApplication>
@@ -136,6 +137,23 @@ void KeyboardUi::setLayout(std::shared_ptr<const Layout> layout)
     rebuild();
 }
 
+void KeyboardUi::setLockscreenOverlay(LockscreenOverlay *overlay)
+{
+    m_overlay = overlay;
+    // The protocol only accepts surfaces that aren't mapped yet, and binding it
+    // can finish after the first windows were shown. Recreate them then.
+    connect(overlay, &QWaylandClientExtension::activeChanged, this, [this] {
+        if (!m_overlay->isActive())
+            return;
+        if (m_handle) {
+            m_handle->hide();
+            m_handle->deleteLater();
+            m_handle = nullptr;
+        }
+        rebuild();
+    });
+}
+
 const LayerDef &KeyboardUi::currentLayer() const
 {
     // A reference into m_layout (QMap::value() would return a copy): windows
@@ -236,6 +254,8 @@ void KeyboardUi::rebuild()
             lw->setScope(QStringLiteral("thumbpad"));
             // -1: ignore other surfaces' exclusive zones, including our own spacer.
             lw->setExclusiveZone(-1);
+            if (m_overlay)
+                m_overlay->allowWindow(w);
         }
         w->setBlock(&b, ppm);
         connect(w, &BlockWindow::moveRequested, this, [this](BlockWindow *self, QPointF d) {
@@ -278,6 +298,8 @@ void KeyboardUi::createHandle()
     const QScreen *s = QGuiApplication::primaryScreen();
     const int h = s ? s->geometry().height() : 912;
     lw->setMargins(QMargins(0, 0, 0, h / 3));
+    if (m_overlay)
+        m_overlay->allowWindow(m_handle);
     connect(m_handle, &HandleWindow::tapped, this, &KeyboardUi::show);
 }
 

@@ -8,7 +8,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif()
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Gui DBus WaylandClient Quick QuickControls2)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Gui GuiPrivate DBus WaylandClient Quick QuickControls2)
 find_package(LayerShellQt REQUIRED)
 
 # Platform-independent core: layout model, gestures, rendering. Unit-tested.
@@ -31,13 +31,16 @@ add_executable(thumbpad
     src/dbusiface.cpp
     src/usersettings.cpp
     src/settingswindow.cpp
+    src/lockscreenoverlay.cpp
 )
 qt_add_resources(thumbpad "qml" PREFIX "/" FILES qml/Settings.qml)
 qt6_generate_wayland_protocol_client_sources(thumbpad
     FILES ${CMAKE_CURRENT_SOURCE_DIR}/protocols/input-method-unstable-v1.xml
+          ${CMAKE_CURRENT_SOURCE_DIR}/protocols/kde-lockscreen-overlay-v1.xml
 )
 target_link_libraries(thumbpad PRIVATE
     thumbpad_core Qt6::DBus Qt6::WaylandClient Qt6::Quick Qt6::QuickControls2
+    Qt6::GuiPrivate  # QNativeInterface::Private::QWaylandWindow (lock screen overlay)
     LayerShellQt::Interface
 )
 # Qt generates the protocol header in "core only" mode, but the protocol

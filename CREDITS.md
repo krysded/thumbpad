@@ -26,5 +26,9 @@ manners in open source, and it helps people find where ideas came from.
   [wayland-protocols](https://gitlab.freedesktop.org/wayland/wayland-protocols),
   © 2012, 2013 Intel Corporation, MIT license (the notice is kept inside the file).
   It is not covered by the Unlicense.
+- `protocols/kde-lockscreen-overlay-v1.xml`: from
+  [plasma-wayland-protocols](https://invent.kde.org/libraries/plasma-wayland-protocols),
+  © 2022 Aleix Pol Gonzalez, LGPL-2.1-or-later (notice kept inside the file).
+  It is not covered by the Unlicense.
 
 If you contribute code from another project, add it to this list along with its license.

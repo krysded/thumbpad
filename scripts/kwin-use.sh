@@ -47,6 +47,9 @@ status)
     ;;
 esac
 
+# KWin grants restricted protocols (the lock screen overlay) based on the
+# .desktop file, which it finds through the KDE service cache.
+kbuildsycoca6 >/dev/null 2>&1 || true
 kwriteconfig6 --notify --file kwinrc --group Wayland --key InputMethod "$target"
 kwriteconfig6 --notify --file kwinrc --group Wayland --key VirtualKeyboardEnabled true
 qdbus6 org.kde.KWin /KWin reconfigure

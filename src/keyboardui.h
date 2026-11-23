@@ -14,6 +14,7 @@ namespace tp {
 
 class BlockWindow;
 class Controller;
+class LockscreenOverlay;
 
 // Invisible full-width strip whose only job is a layer-shell exclusive zone:
 // it makes KWin keep the area above the keyboard free (maximized windows shrink).
@@ -71,6 +72,8 @@ public:
     // Effective settings (layout defaults + user overrides), applied live.
     void setSettings(const Settings &settings);
     void setSettingsOpen(bool open);
+    // Keyboard windows and the ⌨ tab get marked as usable on the lock screen.
+    void setLockscreenOverlay(LockscreenOverlay *overlay);
     int reservedHeight() const; // from the screen bottom to the top of the keyboard
     // Largest screen area clear of the keyboard, for the settings panel.
     QRect freeArea(int minWidth) const;
@@ -113,6 +116,7 @@ private:
     bool m_visible = false;
     bool m_reserve = false;
     bool m_settingsOpen = false;
+    LockscreenOverlay *m_overlay = nullptr;
     Settings m_settings;
 };
 
