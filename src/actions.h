@@ -20,6 +20,8 @@ constexpr int ModCount = 4;
 //   {"command": "toggle-reserve"} -> keep screen space free above the keyboard
 //   {"command": "reset-position"} -> move the blocks back to their default place
 //   {"command": "settings"}       -> open the settings panel
+//   {"command": "screenshot"}     -> hide the keyboard, press Print (plus any
+//                                    active modifiers), then show it again
 // Any object form may also carry "label" to override the displayed text.
 struct Action {
     enum class Type { None, Text, Key, Mod, Layer, Hide, Command };

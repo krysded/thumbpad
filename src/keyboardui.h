@@ -89,6 +89,7 @@ public:
 private:
     void onStateChanged();
     void onCommand(const QString &command);
+    void screenshot();
     void rebuild();
     void applyBlocks();
     void updateVisibility();
@@ -116,6 +117,7 @@ private:
     bool m_visible = false;
     bool m_reserve = false;
     bool m_settingsOpen = false;
+    bool m_capturing = false; // hidden for a screenshot
     LockscreenOverlay *m_overlay = nullptr;
     Settings m_settings;
 };

@@ -161,10 +161,13 @@ tiny digit next to the centre is the long-press.
 | Swipe up on the right **123** | Opens the settings panel |
 | Long-press **123** | Puts the keyboard back in its default place |
 | Long-press **Esc** | Hides the keyboard. The **⌨** tab on the right screen edge brings it back |
+| Swipe **Esc** right | Print key, keyboard stays in the picture. With Super armed (⇧ swipe down) it's Meta+Print: Spectacle's active-window shot |
+| Swipe **Esc** down | Screenshot *without* the keyboard: it hides, presses Print (plus any armed modifier, e.g. Shift for a full-screen shot saved straight to `~/Pictures/Screenshots`), and comes back |
 | Long-press **⇧** | Reserve space: windows shrink so the keyboard never covers them |
 
 In **portrait**, the single block has the same special keys. Its **123** key is the
-drag handle, and swiping up on **Esc** opens the settings.
+drag handle, and on **Esc** a swipe up opens the settings, left is Print, and
+up-right takes a screenshot without the keyboard.
 
 ### Settings
 

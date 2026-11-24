@@ -48,6 +48,14 @@
         },
         "long": {
          "hide": true
+        },
+        "swipe": {
+         "r": {
+          "key": "print"
+         },
+         "b": {
+          "command": "screenshot"
+         }
         }
        }
       ],
@@ -496,6 +504,12 @@
          },
          "t": {
           "command": "settings"
+         },
+         "l": {
+          "key": "print"
+         },
+         "tr": {
+          "command": "screenshot"
          }
         }
        },
@@ -549,6 +563,14 @@
         },
         "long": {
          "hide": true
+        },
+        "swipe": {
+         "r": {
+          "key": "print"
+         },
+         "b": {
+          "command": "screenshot"
+         }
         }
        }
       ],
@@ -931,6 +953,12 @@
          },
          "t": {
           "command": "settings"
+         },
+         "l": {
+          "key": "print"
+         },
+         "tr": {
+          "command": "screenshot"
          }
         }
        },

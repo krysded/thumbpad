@@ -5,6 +5,8 @@
 
 #include <LayerShellQt/window.h>
 #include <QGuiApplication>
+#include <QJsonObject>
+#include <QTimer>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QTouchEvent>
@@ -199,10 +201,32 @@ void KeyboardUi::onCommand(const QString &command)
 {
     if (command == "toggle-reserve")
         setReserveSpace(!m_reserve);
+    else if (command == "screenshot")
+        screenshot();
     else if (command == "settings")
         Q_EMIT settingsRequested();
     else if (command == "reset-position")
         resetPositions();
+}
+
+void KeyboardUi::screenshot()
+{
+    if (m_capturing)
+        return;
+    // Hide first, give the compositor a few frames to drop the keyboard from
+    // the screen, then press Print (with any armed modifier: Super+Print is
+    // Spectacle's active-window shot). Spectacle usually takes focus, so the
+    // keyboard often stays hidden until the next text field anyway.
+    m_capturing = true;
+    updateVisibility();
+    QTimer::singleShot(350, this, [this] {
+        QString err;
+        m_controller->execute(parseAction(QJsonValue(QJsonObject{{"key", "print"}}), &err));
+        QTimer::singleShot(1500, this, [this] {
+            m_capturing = false;
+            updateVisibility();
+        });
+    });
 }
 
 void KeyboardUi::applyBlocks()
@@ -466,14 +490,15 @@ void KeyboardUi::setSettingsOpen(bool open)
 void KeyboardUi::updateVisibility()
 {
     // While the settings panel is open the keyboard stays up for live preview.
-    m_visible = m_settingsOpen || m_pinned || (m_imActive && !m_suppressed);
+    m_visible = !m_capturing &&
+                (m_settingsOpen || m_pinned || (m_imActive && !m_suppressed));
     for (const auto &w : m_windows)
         if (w)
             w->setVisible(m_visible);
     if (m_spacer)
         m_spacer->setVisible(m_visible && m_reserve);
     if (m_handle)
-        m_handle->setVisible(!m_visible && m_settings.showHandle);
+        m_handle->setVisible(!m_visible && !m_capturing && m_settings.showHandle);
 }
 
 void KeyboardUi::show()

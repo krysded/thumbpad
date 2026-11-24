@@ -53,6 +53,12 @@ static void testActions()
     CHECK(!err.isEmpty()); // two kinds in one object
 
     err.clear();
+    a = parseAction(QJsonValue(QJsonObject{{"command", "screenshot"}}), &err);
+    CHECK(err.isEmpty() && a.type == Action::Type::Command && displayLabel(a, false) == "⎙");
+    a = parseAction(QJsonValue(QJsonObject{{"key", "super+print"}}), &err);
+    CHECK(err.isEmpty() && (a.keys == QList<int>{KEY_LEFTMETA, KEY_SYSRQ}));
+
+    err.clear();
     a = parseAction(QJsonValue(QJsonObject{{"mod", "alt"}}), &err);
     CHECK(err.isEmpty() && a.type == Action::Type::Mod && a.mod == Mod::Alt);
 

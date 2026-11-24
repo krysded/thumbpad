@@ -342,7 +342,10 @@ def layer_settings_key(name):
 NAV = {"label": "✥", "swipe": {"t": {"key": "up"}, "b": {"key": "down"}, "l": {"key": "left"},
                                "r": {"key": "right"}, "tl": {"key": "home"}, "tr": {"key": "end"},
                                "bl": {"key": "pageup"}, "br": {"key": "pagedown"}}}
-ESC_L = {"tap": {"key": "esc"}, "long": {"hide": True}}
+# Esc also carries screenshots: right = Print (keyboard stays in the picture,
+# combine with Super for the active window), down = hide the keyboard first.
+ESC_L = {"tap": {"key": "esc"}, "long": {"hide": True},
+         "swipe": {"r": {"key": "print"}, "b": {"command": "screenshot"}}}
 TAB = {"tap": {"key": "tab"}, "swipe": {"t": {"key": "shift+tab"}}}
 
 
@@ -448,7 +451,8 @@ def new_column(P, left, right, lam):
 def portrait_block(slots, layer_main=True):
     sp = [layer_key("numeric" if layer_main else "main"), BKSP, MODS]
     rows = [[sp[r]] + [slots[r * 3 + c] for c in range(3)][::-1] for r in range(3)]
-    esc = {**ESC, "swipe": {**ESC["swipe"], "t": {"command": "settings"}}}
+    esc = {**ESC, "swipe": {**ESC["swipe"], "t": {"command": "settings"},
+                            "l": {"key": "print"}, "tr": {"command": "screenshot"}}}
     rows.append([esc, {"tap": " ", "slide": "cursor", "w": 2},
                  {"tap": {"key": "enter"}, "swipe": {"t": {"key": "tab"}}}])
     return [{"edge": "right", "rows": rows}]

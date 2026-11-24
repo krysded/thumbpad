@@ -61,6 +61,7 @@ recogniser splits the circle into eight 45° sectors.
 | `{"command": "toggle-reserve"}` | Turns reserved space on or off. When on, KWin keeps the strip above the keyboard free, so maximized windows such as a terminal shrink instead of being covered. The setting is remembered. |
 | `{"command": "reset-position"}` | Moves the blocks back to their default spots. |
 | `{"command": "settings"}` | Opens the settings panel. |
+| `{"command": "screenshot"}` | Hides the keyboard, presses Print together with any active modifiers, and shows the keyboard again, so it isn't in the screenshot. Use `{"key": "print"}` for a Print key that leaves the keyboard visible. |
 
 Any object form can also carry `"label"`.
 

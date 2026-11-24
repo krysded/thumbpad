@@ -58,7 +58,7 @@ const QHash<QString, QString> &prettyKeyNames()
         {"insert", "Ins"}, {"space", "␣"}, {"left", "←"}, {"right", "→"},
         {"up", "↑"}, {"down", "↓"}, {"home", "Home"}, {"end", "End"},
         {"pageup", "PgUp"}, {"pgup", "PgUp"}, {"pagedown", "PgDn"}, {"pgdn", "PgDn"},
-        {"menu", "Menu"}, {"capslock", "Caps"},
+        {"menu", "Menu"}, {"capslock", "Caps"}, {"print", "PrtSc"},
     };
     return t;
 }
@@ -187,7 +187,7 @@ Action parseAction(const QJsonValue &v, QString *error)
         a.type = Action::Type::Command;
         a.command = o.value("command").toString();
         if (a.command != "toggle-reserve" && a.command != "reset-position" &&
-            a.command != "settings") {
+            a.command != "settings" && a.command != "screenshot") {
             *error = QStringLiteral("unknown command \"%1\"").arg(a.command);
             return {};
         }
@@ -240,6 +240,7 @@ QString displayLabel(const Action &a, bool shifted)
         return QStringLiteral("▾");
     case Action::Type::Command:
         if (a.command == "settings") return QStringLiteral("⚙");
+        if (a.command == "screenshot") return QStringLiteral("⎙");
         return a.command == "toggle-reserve" ? QStringLiteral("⇕") : QStringLiteral("⟲");
     }
     return {};
